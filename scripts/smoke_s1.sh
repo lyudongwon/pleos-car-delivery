@@ -15,6 +15,7 @@ wait_for() {
 }
 "$ADB" shell am force-stop ai.pleos.playground.caas   # 남은 음성 세션 정리
 demo_gear Drive >/dev/null
+demo_geo 37.4127212 127.094681   # 차 위치를 S1 출발점(내비 고정 위치)으로
 demo_start >/dev/null; "$ADB" shell sleep 4
 demo_reset
 demo_utter s1_1_order

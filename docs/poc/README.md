@@ -15,7 +15,7 @@
 | 고른 지점을 내비 경유지로 자동 추가 | 3, 5-2 | F8 | ✅ | 안내 중 `addWaypoint` 성공, 재탐색 약 5.5초, 목적지 유지 (`docs/sdk_check.md`) |
 | 경유지 추가로 늘어난 거리·시간을 잴 수 있음 | 6-1 | F8 | ✅ | `getDestinationInfo` 전후 차이: +1.2km, +5분 (`docs/sdk_check.md`) |
 | 후보 지점마다 추가 시간을 앱이 계산 | 5-1, 5-2 | F7 | ✅ | 후보마다 `requestRouteWithWaypoints`로 경로를 새로 요청하면 실제 내비 값이 나옴(후보 5곳 +2~10분, 약 12초씩). `requestTrip`은 현재 위치→후보만 줌. 시연에선 미리 측정한 값 사용 (`docs/sdk_check.md` 0단계) |
-| 경로 근처 가게만 추천 | 3, 5-1 | F6 | ❌ | 경로 좌표는 OSRM 공개 서버(키 없음)로 받을 수 있음 확인(좌표 234개). 추천 로직은 구현 전 |
+| 경로 근처 가게만 추천 | 3, 5-1 | F6 | ✅ | FusedLocation 실제 차 위치를 OSRM 경로에 내려, 앞쪽 500m 안 가게만 지나가는 순서로 추천. 출발점: 길목김밥(앞 1,999m)·모퉁이김밥(앞 3,612m), 길목김밥을 지난 위치: 모퉁이김밥만(앞 1,108m). 지나친 시흥김밥·1km 떨어진 먼길김밥은 빠짐 (11/11) |
 | 차 현재 좌표를 받는 곳으로 사용 | 3, 5-2 | F10 | ✅ | FusedLocation 콜백 동작, `geo fix`로 이동 반영 (`docs/sdk_check.md`) |
 | 차종 정보 조회 | 5-2 | F10 | ✅ | INFO_MAKE·INFO_MODEL = "Hyundai 42dot" / "Connect". 차량 번호(`getCRNInfo`)는 "invalid"라 사용자 등록값 사용 |
 | 수령 지점 도착 감지 | 5-1 | F12 | ✅ | FusedLocation `addProximityAlert` 반경 100m ENTER·EXIT 확인. `onWayPointArrived`는 미확인 |

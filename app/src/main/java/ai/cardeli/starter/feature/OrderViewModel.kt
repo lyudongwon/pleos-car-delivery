@@ -14,6 +14,8 @@ import ai.cardeli.starter.feature.mock.DemoData
 import ai.cardeli.starter.feature.mock.MockData
 import ai.cardeli.starter.feature.sdk.DrivingStateSource
 import ai.cardeli.starter.feature.sdk.Listener
+import ai.cardeli.starter.feature.sdk.LocationSource
+import ai.cardeli.starter.feature.route.StoreFinder
 import ai.cardeli.starter.feature.sdk.Speaker
 import ai.cardeli.starter.feature.voice.OrderParser
 import ai.cardeli.starter.feature.voice.VoiceOrderFlow
@@ -108,9 +110,19 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         storeNames = DemoData.s1Stores.map { it.name },
     )
 
-    // TODO(F6): 경로 근처·진행 방향 앞쪽 가게만 거르는 추천으로 바꾼다
-    private val flow = VoiceOrderFlow { DemoData.s1Stores.take(2) }
-    private val routeCum = Geo.cumulativeM(DemoRoute.points)
+    private val locationSource = LocationSource(app)
+    private val storeFinder = StoreFinder(DemoRoute.points, DemoData.s1Stores)
+    private var lastFound: List<StoreFinder.Found> = emptyList()
+
+    /** 지금 차 위치(FusedLocation) 기준으로 경로 근처 앞쪽 가게를 고른다 (F6) */
+    private val flow = VoiceOrderFlow { category ->
+        val here = locationSource.location.value
+            ?: DemoData.s1Start.also { Log.w(TAG, "차 위치를 아직 못 받아 출발점 기준으로 고름") }
+        storeFinder.find(here, category).also {
+            lastFound = it
+            Log.i(TAG, "가게 추천 (${here.lat}, ${here.lng}) $category → " + it.joinToString { f -> "${f.store.name} 앞 ${f.aheadM.roundToInt()}m·옆 ${f.offsetM.roundToInt()}m" })
+        }.map { it.store }
+    }
 
     /** 해석 결과로 대화를 한 단계 진행하고, 앱이 할 말을 읽는다 (F5) */
     private suspend fun onHeard(text: String) {
@@ -132,7 +144,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         VoiceOrderFlow.Stage.Idle -> copy(suggestions = emptyList(), cart = emptyList(), status = OrderStatus.Browsing)
         is VoiceOrderFlow.Stage.ChoosingStore -> copy(
             suggestions = stage.stores.map { s ->
-                StoreSuggestion(s.name, Geo.project(s.location, DemoRoute.points, routeCum).alongM.roundToInt())
+                StoreSuggestion(s.name, lastFound.firstOrNull { it.store.id == s.id }?.aheadM?.roundToInt() ?: 0)
             },
         )
         is VoiceOrderFlow.Stage.ChoosingMenu -> copy(suggestions = suggestions.filter { it.storeName == stage.store.name })
@@ -216,6 +228,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
     override fun onCleared() {
         speaker.release()
         listener.release()
+        locationSource.release()
         super.onCleared()
     }
 
