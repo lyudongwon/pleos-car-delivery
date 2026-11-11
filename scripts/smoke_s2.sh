@@ -9,6 +9,7 @@ check() { # check <설명> <state에 들어 있어야 할 문자열>
   if echo "$s" | grep -q "$2"; then echo "  ok  $1"; else echo "  FAIL $1: '$2' 없음 → $s"; fail=1; fi
 }
 demo_gear Park >/dev/null
+demo_geo 37.3838 127.1240   # 차를 서현 학원가 주차장에
 demo_start >/dev/null; "$ADB" shell sleep 2
 demo_reset
 check "시작은 메뉴판" '"status":"Browsing"'
@@ -18,6 +19,8 @@ check "참치김밥+어묵국 9,500원" '"totalPrice":9500'
 demo_event ReviewOrder
 check "주문 확인" '"status":"Confirming"'
 demo_event PlaceOrder; "$ADB" shell sleep 1
+check "배달 정보: 지금 차 좌표" '"delivery":{"place":"지금 차 위치","lat":37.383'
+check "배달 정보: 등록 번호판·차에서 읽은 차종" '"plate":"12가 3456","color":"흰색","carModel":"Hyundai 42dot Connect"'
 demo_rider 37.3900 127.1300
 check "기사 이동 중" '"status":"RiderComing"'
 demo_rider 37.3840 127.1242

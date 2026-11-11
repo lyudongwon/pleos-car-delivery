@@ -2,6 +2,19 @@
 
 contract(`contract/OrderContract.kt`)가 바뀔 때마다 여기에 적는다. 위에 있을수록 최신이다.
 
+## 2026-11-11 · 배달 정보(delivery) 추가
+
+`OrderUiState.delivery: DeliveryInfo?` — 주문 뒤 채워진다. 기사에게 가는 정보다(기사 화면, 배달 화면).
+
+| 필드 | 뜻 | 예 |
+|---|---|---|
+| `placeLabel` | 받는 곳 이름. S2는 "지금 차 위치", S1은 수령 지점 이름 | 지금 차 위치 / 길목사거리 정차구역 |
+| `latitude`, `longitude` | 받는 곳 좌표 (주소 대신) | 37.3838, 127.1240 |
+| `plate`, `color` | 처음 한 번 등록해 둔 차량 번호·색상 | 12가 3456, 흰색 |
+| `carModel` | 차에서 읽은 차종 | Hyundai 42dot Connect |
+
+DeliveryScreen이나 기사 화면(F11)에서 "기사에게 이렇게 전달됐다"를 보여줄 때 쓴다. `riderDistanceM`은 기사 좌표와 이 좌표 사이 거리다.
+
 ## 2026-11-11 · S1(주행 중 음성 주문) 값 추가
 
 `OrderUiState`에 아래 값이 생겼다. 모두 기본값이 있어서 지금 화면 코드는 그대로 빌드된다. 값은 기능이 붙는 대로 채워진다(아래 "채워지는 때").

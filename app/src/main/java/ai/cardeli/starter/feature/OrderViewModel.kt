@@ -16,12 +16,14 @@ import ai.cardeli.starter.feature.sdk.DrivingStateSource
 import ai.cardeli.starter.feature.sdk.Listener
 import ai.cardeli.starter.feature.sdk.LocationSource
 import ai.cardeli.starter.feature.sdk.NaviClient
+import ai.cardeli.starter.feature.sdk.VehicleInfo
 import ai.cardeli.starter.feature.geo.LatLng
 import ai.cardeli.starter.feature.route.StoreFinder
 import ai.cardeli.starter.feature.route.PickupSelector
 import ai.cardeli.starter.feature.route.PickupLog
 import ai.cardeli.starter.feature.mock.DemoStore
 import ai.cardeli.starter.contract.PickupPoint
+import ai.cardeli.starter.contract.DeliveryInfo
 import ai.cardeli.starter.feature.sdk.Speaker
 import ai.cardeli.starter.feature.voice.OrderParser
 import ai.cardeli.starter.feature.voice.VoiceOrderFlow
@@ -41,7 +43,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.math.roundToInt
 
-class OrderViewModel(app: Application) : AndroidViewModel(app) {
+class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
 
     private val initialState = OrderUiState(menus = MockData.menus)
     private val _state = MutableStateFlow(initialState)
@@ -148,6 +150,18 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
 
     private val pickupSelector = PickupSelector()
 
+    /** 차종은 차에서 한 번 읽어 둔다 */
+    private val carModel: String by lazy { VehicleInfo.carModel(app) ?: "차종 미확인" }
+
+    private fun deliveryInfo(label: String, at: LatLng) = DeliveryInfo(
+        placeLabel = label,
+        latitude = at.lat,
+        longitude = at.lng,
+        plate = DemoData.vehicle.plate,
+        color = DemoData.vehicle.color,
+        carModel = carModel,
+    )
+
     /** 수령 지점을 고르고(F7), 계산 로그를 남기고, 안내한다 */
     private suspend fun choosePickup(store: DemoStore) {
         val candidates = DemoData.s1Pickups.takeIf { store.id == "s1-a" }.orEmpty()   // 후보 실측은 길목김밥 근처만 있다
@@ -162,13 +176,14 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         File(getApplication<Application>().filesDir, "pickup_log.json").writeText(PickupLog.toJson(store, sel, candidates))
         Log.i(TAG, "수령 지점 ${sel.chosen.name} +${sel.chosen.detourMin}분(+${sel.chosen.detourM}m) 대기 ${sel.chosen.waitMin}분 / 포장 +${sel.takeout?.detourMin}분(+${sel.takeout?.detourM}m)")
         val c = sel.chosen
+        val pickupLoc = candidates.first { it.id == c.id }.location
+        _state.update { it.copy(delivery = deliveryInfo(c.name, pickupLoc)) }
         val say = "${c.name}에서 받으세요. " + if (c.waitMin > 0) "도착하면 ${c.waitMin}분쯤 기다려요." else "도착하면 바로 받을 수 있어요."
         _state.update {
             it.copy(pickup = PickupPoint(c.name, detourMin = c.detourMin, detourM = c.detourM, waitMin = c.waitMin), assistantText = say)
         }
         speak(say)
-        val loc = candidates.first { it.id == c.id }.location
-        addWaypoint(c.name, loc, c)
+        addWaypoint(c.name, pickupLoc, c)
     }
 
     /** 고른 지점을 내비 경유지로 넣고, 넣기 전후 남은 거리·시간 차이로 +N분을 다시 잰다 (F8) */
@@ -232,7 +247,8 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         val status = _state.value.status
         if (status != OrderStatus.Ordered && status != OrderStatus.RiderComing && status != OrderStatus.Arrived) return
         deliveryJob?.cancel()
-        val d = Geo.distanceM(c.location, DemoData.s2Parking).roundToInt()
+        val target = _state.value.delivery?.let { LatLng(it.latitude, it.longitude) } ?: DemoData.s2Parking
+        val d = Geo.distanceM(c.location, target).roundToInt()
         _state.update {
             it.copy(riderDistanceM = d, status = if (d <= ARRIVED_M) OrderStatus.Arrived else OrderStatus.RiderComing)
         }
@@ -248,8 +264,12 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun placeOrder() {
         if (_state.value.status != OrderStatus.Confirming) return
-        // 결제는 가상: 화면 없이 바로 성공 처리
-        _state.update { it.copy(status = OrderStatus.Ordered) }
+        // 결제는 가상: 화면 없이 바로 성공 처리. 받는 곳은 주소 대신 지금 차 좌표 (F10)
+        val here = locationSource.location.value
+        if (here == null) Log.w(TAG, "차 위치를 아직 못 받아 배달 정보 없이 주문")
+        val delivery = here?.let { deliveryInfo("지금 차 위치", it) }
+        Log.i(TAG, "배달 정보 $delivery")
+        _state.update { it.copy(status = OrderStatus.Ordered, delivery = delivery) }
         deliveryJob?.cancel()
         deliveryJob = viewModelScope.launch { simulateDelivery() }
     }

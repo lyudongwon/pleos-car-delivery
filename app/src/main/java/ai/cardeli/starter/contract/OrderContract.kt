@@ -44,6 +44,9 @@ data class OrderUiState(
     val suggestions: List<StoreSuggestion> = emptyList(),  // 경로 근처 추천 가게 (최대 2개)
     val pickup: PickupPoint? = null,         // 정해진 수령 지점. 정해지기 전에는 null
     val touchCount: Int = 0,                 // 주행 중 화면 터치 횟수. 영상에서 '화면 터치 0회'로 보여준다
+
+    // ---------- 배달기사에게 가는 정보 (F10·F11 기사 화면) ----------
+    val delivery: DeliveryInfo? = null,      // 주문 뒤 채워진다
 ) {
     val totalPrice: Int get() = cart.sumOf { it.totalPrice }
 }
@@ -58,6 +61,16 @@ enum class VoiceState {
 data class StoreSuggestion(
     val storeName: String,
     val aheadM: Int,           // 지금 위치에서 경로를 따라 가게 앞까지 거리(m)
+)
+
+/** 기사에게 보내는 받는 곳 정보. 주소 대신 좌표와 차량 정보로 찾아온다 */
+data class DeliveryInfo(
+    val placeLabel: String,    // S2: "지금 차 위치", S1: 수령 지점 이름
+    val latitude: Double,
+    val longitude: Double,
+    val plate: String,         // 처음 한 번 등록한 차량 번호
+    val color: String,
+    val carModel: String,      // 차에서 읽은 차종. 못 읽으면 "차종 미확인"
 )
 
 data class PickupPoint(
