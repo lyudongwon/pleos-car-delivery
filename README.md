@@ -1,4 +1,4 @@
-# 카딜 (가칭)
+# 밥먹GO
 
 **차량 위치와 이동 경로를 활용해 차 안에서 음식을 주문하고 배달받는 차량 특화 음식 배달 서비스.**
 Pleos Connect(AAOS) 앱 · Kotlin · Jetpack Compose
