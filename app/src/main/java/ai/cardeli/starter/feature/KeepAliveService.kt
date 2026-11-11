@@ -40,6 +40,12 @@ class KeepAliveService : Service() {
         private const val CHANNEL = "order"
         private const val ID = 1
 
+        /** 동결 감지 검증용으로만 쓴다 (데모 keepalive 명령) */
+        fun stop(context: Context) {
+            context.stopService(Intent(context, KeepAliveService::class.java))
+            Log.i(TAG, "포그라운드 서비스 멈춤")
+        }
+
         fun start(context: Context) {
             try {
                 context.startForegroundService(Intent(context, KeepAliveService::class.java))

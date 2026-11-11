@@ -14,6 +14,7 @@ source scripts/demo.sh
 | 함수 | 하는 일 |
 |---|---|
 | `demo_start` | 앱을 새로 띄운다 |
+| `demo_keepalive <true·false>` | 포그라운드 서비스를 켜고 끈다. 동결 감지 검증용 |
 | `demo_route` | 내비에 S1 목적지(서현역) 안내를 시작한다. 운전자가 목적지를 찍고 출발한 상태 |
 | `demo_measure` | 앱이 내비로 수령 후보 5곳·포장의 추가 거리·시간을 직접 잰다(약 1분). 이후 주문은 이 값으로 고른다. 결과는 `demo_measure_log` |
 | `demo_pickup_log` | F7 수령 지점 계산 로그(JSON)를 출력한다 |
@@ -38,7 +39,14 @@ adb shell am broadcast -n ai.cardeli.starter/.feature.demo.DemoReceiver --es cmd
 
 ## 스모크 테스트
 
+두 가지 모드가 있다 (`scripts/lib_smoke.sh`).
+
+- 기본(폴링): 상태를 계속 물으며 기다린다. 빠르지만 묻는 명령이 앱을 깨워서, 앱이 백그라운드에서 얼어도 통과할 수 있다.
+- `PASSIVE=1`(무폴링): 정해진 시간 동안 앱을 건드리지 않고 기다렸다가 한 번만 확인한다. 기다리는 동안 10초마다 `isFrozen`을 보고 한 번이라도 얼면 실패. 실제 시연과 같은 조건이다.
+
 ```bash
+PASSIVE=1 bash scripts/smoke_s1.sh   # 시연 조건으로 확인
+NO_KEEPALIVE=1 PASSIVE=1 bash scripts/smoke_s1.sh   # 포그라운드 서비스를 끄고 돌려, 동결 감지가 실패로 잡는지 확인(실패해야 정상)
 bash scripts/smoke_s1.sh     # S1 주행 중 음성 주문: 기어 D, 대사 3개로 주문 완료까지, 터치 0회
 bash scripts/smoke_s2.sh     # S2 정차 주문 흐름 전체
 bash scripts/smoke_gleo.sh   # Gleo가 보내는 ORDER_FOOD 인텐트 → 앱 주문 흐름

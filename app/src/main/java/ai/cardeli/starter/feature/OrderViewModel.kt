@@ -113,6 +113,7 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
             is DemoCommand.Rider -> onRider(command)
             is DemoCommand.Say -> viewModelScope.launch { speaker.say(command.text) }
             DemoCommand.Measure -> viewModelScope.launch { measureLive() }
+            is DemoCommand.KeepAlive -> if (command.on) KeepAliveService.start(app) else KeepAliveService.stop(app)
             DemoCommand.Route -> viewModelScope.launch {
                 val r = navi.startRoute(DemoData.s1Destination, DemoData.S1_DESTINATION_NAME)
                 Log.i(TAG, "내비 안내 시작 ${DemoData.S1_DESTINATION_NAME}: ${r?.let { "${it.distanceM}m ${it.timeSec}초" } ?: "실패"}")

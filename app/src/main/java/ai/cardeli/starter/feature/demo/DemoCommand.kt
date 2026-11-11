@@ -26,6 +26,9 @@ sealed interface DemoCommand {
     /** 앱이 내비로 수령 후보(와 가게 들러 포장)의 추가 거리·시간을 직접 잰다. 1~2분 걸린다 (F7 실시간 계산) */
     data object Measure : DemoCommand
 
+    /** 포그라운드 서비스를 켜고 끈다. 스모크의 동결 감지가 실제로 잡는지 확인할 때만 쓴다 */
+    data class KeepAlive(val on: Boolean) : DemoCommand
+
     /** 문장을 음성으로 말한다 (F4 확인용) */
     data class Say(val text: String) : DemoCommand
 
@@ -42,6 +45,7 @@ sealed interface DemoCommand {
             "dump" -> Dump
             "route" -> Route
             "measure" -> Measure
+            "keepalive" -> KeepAlive(extra("on") != "false")
             "utter" -> extra("name")?.let { Utter(it) }
             "say" -> extra("text")?.takeIf { it.isNotBlank() }?.let { Say(it) }
             "rider" -> {
