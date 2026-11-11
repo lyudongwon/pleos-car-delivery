@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# 시연·테스트용 adb 명령 모음 (F14). 사용법: docs/demo.md
+#   source scripts/demo.sh   후   demo_reset, demo_event AddMenu s2-2, demo_rider 37.385 127.1256, demo_state, demo_gear Drive
+ADB="${ADB:-adb}"
+PKG=ai.cardeli.starter
+RECV="$PKG/.feature.demo.DemoReceiver"
+
+demo_cmd()   { "$ADB" shell am broadcast -n "$RECV" "$@" >/dev/null; }
+demo_reset() { demo_cmd --es cmd reset; }
+demo_event() { if [ -n "$2" ]; then demo_cmd --es cmd event --es name "$1" --es id "$2"; else demo_cmd --es cmd event --es name "$1"; fi; }
+demo_utter() { demo_cmd --es cmd utter --es name "$1"; }
+demo_rider() { demo_cmd --es cmd rider --es lat "$1" --es lng "$2"; }
+# state를 저장하고 바로 출력
+# AAOS는 앱이 사용자 10으로 돈다
+DEMO_USER="${DEMO_USER:-$("$ADB" shell am get-current-user | tr -dc '0-9')}"
+demo_state() { demo_cmd --es cmd dump; "$ADB" shell sleep 1; "$ADB" shell run-as "$PKG" --user "$DEMO_USER" cat files/demo_state.json; echo; }
+# 차량 위치 (FusedLocation): 인자는 위도 경도, adb에는 경도 위도 순서로 넘긴다
+demo_geo()   { "$ADB" emu geo fix "$2" "$1" >/dev/null; }
+# Virtual Console: 기어 바꾸기 (heartbeat 후 요청)
+demo_gear()  {
+  "$ADB" forward tcp:8088 tcp:8088 >/dev/null
+  curl -s -X POST "http://localhost:8088/browser/session?client=demo" >/dev/null
+  curl -s -X PUT "http://localhost:8088/vehicle/gear?gear=$1" | grep -o '"value":"[A-Za-z]*"'
+}
+demo_start() { "$ADB" shell am force-stop "$PKG"; "$ADB" shell am start -W -n "$PKG/.MainActivity" | grep -E "Status"; }

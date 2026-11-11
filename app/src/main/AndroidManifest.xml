@@ -42,6 +42,11 @@
             </intent-filter>
         </activity>
 
+        <!-- 시연·테스트용 adb 명령 수신기 (F14). 사용법 docs/demo.md -->
+        <receiver
+            android:name=".feature.demo.DemoReceiver"
+            android:exported="true" />
+
         <!-- 아래는 SDK 동작 확인용 시험 화면 (check/). adb shell am start -n ai.cardeli.starter/.check.<이름> -->
         <activity
             android:name=".check.VehicleCheckActivity"
