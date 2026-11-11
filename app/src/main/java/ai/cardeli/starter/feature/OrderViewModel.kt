@@ -21,6 +21,7 @@ import ai.cardeli.starter.feature.geo.LatLng
 import ai.cardeli.starter.feature.route.StoreFinder
 import ai.cardeli.starter.feature.route.PickupSelector
 import ai.cardeli.starter.feature.route.PickupLog
+import ai.cardeli.starter.feature.route.RiderTracker
 import ai.cardeli.starter.feature.mock.DemoStore
 import ai.cardeli.starter.contract.PickupPoint
 import ai.cardeli.starter.contract.DeliveryInfo
@@ -33,8 +34,6 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,7 +48,6 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
     private val _state = MutableStateFlow(initialState)
     val state: StateFlow<OrderUiState> = _state.asStateFlow()
 
-    private var deliveryJob: Job? = null
     private val speaker = Speaker(app)
     private val listener = Listener(app)
     private val navi = NaviClient(app)
@@ -93,8 +91,8 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
     private fun onDemoCommand(command: DemoCommand) {
         when (command) {
             DemoCommand.Reset -> {
-                deliveryJob?.cancel()
                 flow.reset()
+                riderTracker.reset()
                 _state.update { initialState.copy(isDriving = it.isDriving) }
             }
             DemoCommand.Dump -> dumpState()
@@ -239,18 +237,28 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         }
     }
 
+    private val riderTracker = RiderTracker()
+
     /**
-     * 기사 좌표가 들어오면 가상 타이머를 멈추고 차(학원 주차장)까지의 거리로 상태를 바꾼다.
-     * TODO(F11): 차 위치를 FusedLocation 실제 좌표로, 200m 안 진입 시 음성 안내
+     * 기사 좌표가 들어오면 받는 곳(배달 정보 좌표)까지 거리를 계산해 상태를 바꾸고,
+     * 200m 안에 처음 들어오면 "곧 도착", 30m 안이면 "도착"을 한 번씩 알린다 (F11).
      */
     private fun onRider(c: DemoCommand.Rider) {
         val status = _state.value.status
         if (status != OrderStatus.Ordered && status != OrderStatus.RiderComing && status != OrderStatus.Arrived) return
-        deliveryJob?.cancel()
         val target = _state.value.delivery?.let { LatLng(it.latitude, it.longitude) } ?: DemoData.s2Parking
         val d = Geo.distanceM(c.location, target).roundToInt()
         _state.update {
-            it.copy(riderDistanceM = d, status = if (d <= ARRIVED_M) OrderStatus.Arrived else OrderStatus.RiderComing)
+            it.copy(riderDistanceM = d, status = if (riderTracker.isArrived(d)) OrderStatus.Arrived else OrderStatus.RiderComing)
+        }
+        for (e in riderTracker.update(d)) {
+            val say = when (e) {
+                RiderTracker.Event.Approaching -> "배달기사가 곧 도착해요."
+                RiderTracker.Event.Arrived -> "배달기사가 도착했어요."
+            }
+            Log.i(TAG, "기사 $e (${d}m)")
+            _state.update { it.copy(assistantText = say) }
+            viewModelScope.launch { speak(say) }
         }
     }
 
@@ -269,23 +277,8 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         if (here == null) Log.w(TAG, "차 위치를 아직 못 받아 배달 정보 없이 주문")
         val delivery = here?.let { deliveryInfo("지금 차 위치", it) }
         Log.i(TAG, "배달 정보 $delivery")
+        riderTracker.reset()
         _state.update { it.copy(status = OrderStatus.Ordered, delivery = delivery) }
-        deliveryJob?.cancel()
-        deliveryJob = viewModelScope.launch { simulateDelivery() }
-    }
-
-    /** TODO(F11): 가상 진행을 adb broadcast로 받은 기사 좌표 기반 계산으로 바꾼다. 기사 좌표가 오면 멈춘다 */
-    private suspend fun simulateDelivery() {
-        delay(MockData.COOKING_MS)
-        for (d in MockData.riderDistancesM) {
-            _state.update {
-                it.copy(
-                    status = if (d == 0) OrderStatus.Arrived else OrderStatus.RiderComing,
-                    riderDistanceM = d,
-                )
-            }
-            delay(MockData.RIDER_STEP_MS)
-        }
     }
 
     private fun List<CartItem>.add(menu: Menu): List<CartItem> =

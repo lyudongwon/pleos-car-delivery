@@ -22,9 +22,11 @@ demo_event PlaceOrder; "$ADB" shell sleep 1
 check "배달 정보: 지금 차 좌표" '"delivery":{"place":"지금 차 위치","lat":37.383'
 check "배달 정보: 등록 번호판·차에서 읽은 차종" '"plate":"12가 3456","color":"흰색","carModel":"Hyundai 42dot Connect"'
 demo_rider 37.3900 127.1300
-check "기사 이동 중" '"status":"RiderComing"'
-demo_rider 37.3840 127.1242
-check "기사 도착 (30m 안)" '"status":"Arrived"'
+check "기사 이동 중 (약 870m)" '"status":"RiderComing"'
+demo_rider 37.3850 127.1255; "$ADB" shell sleep 1
+check "200m 안: 곧 도착 안내" '"assistantText":"배달기사가 곧 도착해요."'
+demo_rider 37.3840 127.1242; "$ADB" shell sleep 1
+check "기사 도착 (30m 안) 안내" '"status":"Arrived".*"assistantText":"배달기사가 도착했어요."'
 demo_event ConfirmReceived
 check "수령 완료" '"status":"Received"'
 demo_reset

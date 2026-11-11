@@ -20,7 +20,7 @@
 | 차종 정보 조회 | 5-2 | F10 | ✅ | INFO_MAKE·INFO_MODEL = "Hyundai 42dot" / "Connect". 차량 번호(`getCRNInfo`)는 "invalid"라 사용자 등록값 사용 |
 | 수령 지점 도착 감지 | 5-1 | F12 | ✅ | FusedLocation `addProximityAlert` 반경 100m ENTER·EXIT 확인. `onWayPointArrived`는 미확인 |
 | 창문 열고 닫으면 수령 감지 | 5-1, 5-2 | F13 | ✅ | `registerWindowPosition` 열림 10 → 닫힘 0 이벤트 (`docs/sdk_check.md`) |
-| 배달기사 접근 시 음성 알림 | 5-1 | F11 | ❌ | 기사 좌표 거리 판정 + TTS, 구현 전 |
+| 배달기사 접근 시 음성 알림 | 5-1 | F11 | ✅ | 기사 좌표(adb로 입력)와 실제 차 좌표 거리를 계산해 200m 안 첫 진입 때 "배달기사가 곧 도착해요"(188m), 30m 안에서 "도착했어요"(29m)를 한 번씩 음성 안내 (11/11, `scripts/smoke_s2.sh`). 기사 위치는 실제 기사 앱 대신 명령으로 넣는다 |
 | Gleo AI에 말하면 주문 시작 | 5-1, 5-2 | F15 | ✅ | schema.json 등록 후 Gleo가 앱으로 넘김 (`docs/gleo_check.md`) |
 
 ## 성과 지표 (6-1)
