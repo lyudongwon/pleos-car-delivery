@@ -80,7 +80,7 @@ demo_start >/dev/null; "$ADB" shell sleep 4
 demo_reset
 "$ADB" logcat -c; demo_route
 route_started || echo "  !! 내비 안내 시작 못 함"
-"$ADB" shell am start -n "$PKG/.MainActivity" >/dev/null; "$ADB" shell sleep 2   # 안내가 잡힌 뒤 카딜을 다시 앞으로 (상태는 그대로)
+"$ADB" shell am start -n "$PKG/.MainActivity" >/dev/null; "$ADB" shell sleep 2   # 안내가 잡힌 뒤 밥먹GO를 다시 앞으로 (상태는 그대로)
 "$ADB" logcat -c
 rec_start s1
 shot s1_0_driving

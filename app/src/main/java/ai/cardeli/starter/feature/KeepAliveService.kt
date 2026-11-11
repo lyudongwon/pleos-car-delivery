@@ -24,7 +24,7 @@ class KeepAliveService : Service() {
         nm.createNotificationChannel(NotificationChannel(CHANNEL, "주문 진행", NotificationManager.IMPORTANCE_LOW))
         val notification = Notification.Builder(this, CHANNEL)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-            .setContentTitle("카딜")
+            .setContentTitle("밥먹GO")
             .setContentText("주문을 이어서 처리하고 있어요")
             .setOngoing(true)
             .build()

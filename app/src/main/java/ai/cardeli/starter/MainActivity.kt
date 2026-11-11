@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
         if (intent == null || !GleoBridge.isOrder(intent)) return
         val order = GleoBridge.parse(intent)
         val ok = order != null && viewModel.onGleoOrder(order)
-        GleoBridge.respond(this, ok, if (ok) "카딜에서 주문을 이어갈게요." else "주문할 메뉴를 다시 말씀해 주세요.")
+        GleoBridge.respond(this, ok, if (ok) "밥먹GO에서 주문을 이어갈게요." else "주문할 메뉴를 다시 말씀해 주세요.")
     }
 
     /** 주행 중 화면 터치를 센다 (F1 '화면 터치 0회'). 화면 코드와 상관없이 창 전체에서 센다 */
