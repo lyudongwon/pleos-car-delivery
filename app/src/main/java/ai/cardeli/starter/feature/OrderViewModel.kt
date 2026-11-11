@@ -15,6 +15,7 @@ import ai.cardeli.starter.feature.mock.MockData
 import ai.cardeli.starter.feature.sdk.DrivingStateSource
 import ai.cardeli.starter.feature.sdk.Listener
 import ai.cardeli.starter.feature.sdk.Speaker
+import ai.cardeli.starter.feature.voice.OrderParser
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -98,9 +99,14 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         if (text == null) Log.w(TAG, "인식 실패: $name") else onHeard(text)
     }
 
-    /** TODO(F5): 인식된 문장으로 대화를 진행한다 */
+    private val parser = OrderParser(
+        menuNames = DemoData.s1Stores.first().menus.map { it.name },
+        storeNames = DemoData.s1Stores.map { it.name },
+    )
+
+    /** TODO(F5): 해석 결과로 대화를 진행한다 */
     private fun onHeard(text: String) {
-        Log.i(TAG, "들음: '$text'")
+        Log.i(TAG, "들음: '$text' → ${parser.parse(text)}")
     }
 
     private fun eventFrom(c: DemoCommand.Event): OrderEvent? {
