@@ -1,0 +1,30 @@
+{
+  "packageName": "ai.cardeli.starter",
+  "appDescription": "An app for ordering food delivered to the car.",
+  "invokeWord": "배달",
+  "version": "0.1",
+  "actionCalls": [
+    {
+      "type": "function",
+      "function": {
+        "name": "ORDER_FOOD",
+        "description": "Order a food menu item from a restaurant to be delivered to the car.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "menu": {
+              "type": "string",
+              "description": "Name of the food menu item to order."
+            },
+            "quantity": {
+              "type": "number",
+              "description": "Number of servings of the menu item to order."
+            }
+          },
+          "required": ["menu", "quantity"]
+        },
+        "component": "activity"
+      }
+    }
+  ]
+}

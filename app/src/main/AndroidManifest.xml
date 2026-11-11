@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature android:name="android.hardware.type.automotive" android:required="true" />
+
+    <!-- Pleos Vehicle SDK -->
+    <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />  <!-- Gear -->
+    <uses-permission android:name="pleos.car.permission.CAR_INFO" />   <!-- CarInfo: 차량 등록번호·VIN -->
+    <uses-permission android:name="pleos.car.permission.CAR_WINDOWS" />  <!-- Window: 창문 위치 조회·리스너 (수령 감지) -->
+    <!-- 시험용: 에뮬레이터에서 창문을 열고 닫아 리스너를 확인하려고 넣음. 실제 앱에는 넣지 않는다 -->
+    <uses-permission android:name="pleos.car.permission.CONTROL_CAR_WINDOWS" />
+
+    <!-- NaviHelper: 조회(get*, requestTrip) / 경로·경유지 변경 -->
+    <uses-permission android:name="pleos.car.permission.NAVI_ROUTE" />
+    <uses-permission android:name="pleos.car.permission.NAVI_ROUTE_SEARCH" />
+    <!-- 음성·위치 -->
+    <uses-permission android:name="pleos.car.permission.STT_SERVICE" />
+    <uses-permission android:name="pleos.car.permission.TTS_SERVICE" />
+    <uses-permission android:name="pleos.car.permission.FUSED_LOCATION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 시험용: LLM SDK (에뮬레이터 v2.1.0 기준 제공 종료 공지됨) -->
+    <uses-permission android:name="pleos.car.permission.LLM_SERVICE" />
+
+    <!-- AAOS 표준 Car API -->
+    <uses-permission android:name="android.car.permission.CAR_SPEED" />
+    <uses-permission android:name="android.car.permission.CAR_POWERTRAIN" />
+    <uses-permission android:name="android.car.permission.CAR_INFO" />
+
+    <application
+        android:label="Pleos Starter"
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+
+        <!-- 시연 앱 본체 (Compose) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <!-- 주행 중에도 화면을 띄울 수 있게 Distraction Optimization 선언 -->
+            <meta-data android:name="distractionOptimized" android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 아래는 SDK 동작 확인용 시험 화면 (check/). adb shell am start -n ai.cardeli.starter/.check.<이름> -->
+        <activity
+            android:name=".check.VehicleCheckActivity"
+            android:exported="true">
+            <meta-data android:name="distractionOptimized" android:value="true" />
+        </activity>
+        <activity
+            android:name=".check.SdkCheckActivity"
+            android:exported="true">
+            <meta-data android:name="distractionOptimized" android:value="true" />
+        </activity>
+        <!-- 시험용: Gleo AI 앱 연동(App Schema). schema.json의 function 이름을 action으로 받는다 -->
+        <activity
+            android:name=".check.GleoActionActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <meta-data android:name="distractionOptimized" android:value="true" />
+            <intent-filter>
+                <!-- 문서 예시는 function 이름 그대로지만, 에뮬레이터 v2.1.0의 Gleo(4.2.0.15)는 "패키지명.function 이름"으로 보낸다 -->
+                <action android:name="ORDER_FOOD" />
+                <action android:name="ai.cardeli.starter.ORDER_FOOD" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <!-- 시험용: LLM SDK 동작 확인 -->
+        <activity
+            android:name=".check.LlmCheckActivity"
+            android:exported="true">
+            <meta-data android:name="distractionOptimized" android:value="true" />
+        </activity>
+    </application>
+</manifest>

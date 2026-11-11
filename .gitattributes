@@ -1,0 +1,11 @@
+# 줄바꿈은 저장소에 LF로 둔다 (Windows·macOS 팀원이 섞여도 diff가 줄 전체로 바뀌지 않게)
+* text=auto eol=lf
+*.bat text eol=crlf
+
+# 바이너리
+*.jar binary
+*.pcm binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.apk binary
