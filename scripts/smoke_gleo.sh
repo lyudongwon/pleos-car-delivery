@@ -11,7 +11,8 @@ demo_gear Drive >/dev/null
 demo_geo 37.4127212 127.094681
 demo_start >/dev/null; "$ADB" shell sleep 4
 demo_reset
-demo_route; "$ADB" shell sleep 15
+"$ADB" logcat -c; demo_route
+route_started || { echo "  FAIL 내비 안내 시작"; SMOKE_FAIL=1; }
 "$ADB" shell "am start -a ai.cardeli.starter.ORDER_FOOD -p ai.cardeli.starter --es ACTION_PARAM '{\"menu\":\"참치 김밥\",\"quantity\":1}'" >/dev/null
 step "Gleo 메뉴로 바로 주문 확인" '"status":"Confirming".*"totalPrice":5500.*"assistantText":"길목김밥에서 참치김밥 하나, 5,500원이에요. 주문할까요?"' 12
 demo_utter s1_3_yes

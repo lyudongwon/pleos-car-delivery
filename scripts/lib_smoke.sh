@@ -57,6 +57,17 @@ step() {
   return 1
 }
 
+# demo_route 뒤에 내비 안내가 잡혔는지 앱 로그로 확인한다 (재시도 포함 최대 90초)
+route_started() {
+  local i
+  for i in $(seq 18); do
+    "$ADB" shell sleep 5
+    if "$ADB" logcat -d -s Demo:I | tail -50 | grep -q "내비 안내 시작 .*: [0-9]*m"; then echo "  ok  내비 안내 시작"; return 0; fi
+    if "$ADB" logcat -d -s Demo:I | tail -50 | grep -q "내비 안내 시작 .*: 실패"; then return 1; fi
+  done
+  return 1
+}
+
 # smoke_end <이름>: 결과를 출력하고 종료 코드를 정한다
 smoke_end() {
   local name=$1 mode="폴링"

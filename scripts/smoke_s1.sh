@@ -11,7 +11,8 @@ demo_gear Drive >/dev/null
 demo_geo 37.4127212 127.094681   # 차 위치를 S1 출발점(내비 고정 위치)으로
 demo_start >/dev/null; "$ADB" shell sleep 4
 demo_reset
-demo_route; "$ADB" shell sleep 15   # 운전자가 서현역을 찍고 출발한 상태
+"$ADB" logcat -c; demo_route   # 운전자가 서현역을 찍고 출발한 상태
+route_started || { echo "  FAIL 내비 안내 시작"; SMOKE_FAIL=1; }
 [ "${NO_KEEPALIVE:-0}" = "1" ] && demo_keepalive false   # 동결 감지 검증용: 포그라운드 서비스를 끄고 돌린다
 
 demo_utter s1_1_order

@@ -117,14 +117,23 @@ class NaviClient(context: Context) {
         r
     }
 
-    /** 목적지만으로 안내를 시작한다 (시연에서 운전자가 목적지를 찍은 상태를 만든다) */
-    suspend fun startRoute(dest: LatLng, name: String): Remain? {
+    /**
+     * 목적지만으로 안내를 시작한다 (시연에서 운전자가 목적지를 찍은 상태를 만든다).
+     * 에뮬레이터 재부팅 직후에는 내비 엔진이 덜 떠서 첫 요청이 경로를 못 잡는다(11/12 콜드 부팅에서 확인).
+     * 그래서 경로가 안 잡히면 [attempts]번까지 다시 요청한다.
+     */
+    suspend fun startRoute(dest: LatLng, name: String, attempts: Int = 3): Remain? {
         if (!isReady()) return null
         waypoint = null
-        withTimeoutOrNull(5_000) {
-            awaitAfter(cancelled) { navi.requestRoute(RouteInfo(dest.lat, dest.lng, null, null, name, "", "", "", RouteOption.RECOMMENDED, "", false)) }
+        repeat(attempts) { i ->
+            withTimeoutOrNull(5_000) {
+                awaitAfter(cancelled) { navi.requestRoute(RouteInfo(dest.lat, dest.lng, null, null, name, "", "", "", RouteOption.RECOMMENDED, "", false)) }
+            }
+            awaitRoute(20_000)?.let { return it }
+            Log.w(TAG, "안내 시작 실패 (${i + 1}/$attempts), 다시 요청")
+            delay(3_000)
         }
-        return awaitRoute(20_000)
+        return null
     }
 
     /** 경유지(FIRST)를 넣고, 재탐색이 끝난 뒤의 남은 거리·시간을 돌려준다 */

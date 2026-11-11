@@ -45,6 +45,7 @@ adb shell am broadcast -n ai.cardeli.starter/.feature.demo.DemoReceiver --es cmd
 - `PASSIVE=1`(무폴링): 정해진 시간 동안 앱을 건드리지 않고 기다렸다가 한 번만 확인한다. 기다리는 동안 10초마다 `isFrozen`을 보고 한 번이라도 얼면 실패. 실제 시연과 같은 조건이다.
 
 ```bash
+bash scripts/run_all.sh   # 녹화 전·큰 변경 뒤: 재부팅부터 세 스모크 무폴링까지 한 번에, 결과 docs/poc/e2e/
 PASSIVE=1 bash scripts/smoke_s1.sh   # 시연 조건으로 확인
 NO_KEEPALIVE=1 PASSIVE=1 bash scripts/smoke_s1.sh   # 포그라운드 서비스를 끄고 돌려, 동결 감지가 실패로 잡는지 확인(실패해야 정상)
 bash scripts/smoke_s1.sh     # S1 주행 중 음성 주문: 기어 D, 대사 3개로 주문 완료까지, 터치 0회
