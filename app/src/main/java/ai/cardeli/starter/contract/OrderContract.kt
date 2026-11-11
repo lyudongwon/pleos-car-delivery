@@ -36,9 +36,36 @@ data class OrderUiState(
     val cart: List<CartItem> = emptyList(),
     val status: OrderStatus = OrderStatus.Browsing,
     val riderDistanceM: Int? = null,         // 배달기사와 차 사이 거리(m). 배달 전에는 null
+
+    // ---------- S1: 주행 중 음성 주문 (DrivingScreen) ----------
+    val voiceState: VoiceState = VoiceState.Idle,
+    val transcript: String = "",             // 운전자가 말하는 중인 문장(음성 인식 중간 결과). 자막처럼 보여준다
+    val assistantText: String = "",          // 앱이 마지막으로 한 말. 주행 화면 텍스트 1줄
+    val suggestions: List<StoreSuggestion> = emptyList(),  // 경로 근처 추천 가게 (최대 2개)
+    val pickup: PickupPoint? = null,         // 정해진 수령 지점. 정해지기 전에는 null
+    val touchCount: Int = 0,                 // 주행 중 화면 터치 횟수. 영상에서 '화면 터치 0회'로 보여준다
 ) {
     val totalPrice: Int get() = cart.sumOf { it.totalPrice }
 }
+
+enum class VoiceState {
+    Idle,       // 대기
+    Listening,  // 듣는 중
+    Thinking,   // 해석·계산 중
+    Speaking,   // 앱이 말하는 중
+}
+
+data class StoreSuggestion(
+    val storeName: String,
+    val aheadM: Int,           // 지금 위치에서 경로를 따라 가게 앞까지 거리(m)
+)
+
+data class PickupPoint(
+    val name: String,          // 예: 길목 공영주차장
+    val detourMin: Int,        // 원래 경로보다 늘어나는 시간(분). 화면에 "+N분"
+    val detourM: Int,          // 원래 경로보다 늘어나는 거리(m)
+    val waitMin: Int,          // 도착해서 음식을 기다리는 시간(분). 0이면 바로 받음
+)
 
 sealed interface OrderEvent {
     data class AddMenu(val menu: Menu) : OrderEvent

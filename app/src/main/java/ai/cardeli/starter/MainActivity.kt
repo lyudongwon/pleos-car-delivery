@@ -10,6 +10,7 @@ import ai.cardeli.starter.ui.screens.DrivingScreen
 import ai.cardeli.starter.ui.screens.MenuScreen
 import ai.cardeli.starter.ui.theme.CardeliTheme
 import android.os.Bundle
+import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -29,6 +30,12 @@ class MainActivity : ComponentActivity() {
                 AppScreen(state, viewModel::onEvent)
             }
         }
+    }
+
+    /** 주행 중 화면 터치를 센다 (F1 '화면 터치 0회'). 화면 코드와 상관없이 창 전체에서 센다 */
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) viewModel.onScreenTouched()
+        return super.dispatchTouchEvent(ev)
     }
 }
 

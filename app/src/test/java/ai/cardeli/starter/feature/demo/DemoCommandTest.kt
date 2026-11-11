@@ -4,9 +4,13 @@ import ai.cardeli.starter.contract.CartItem
 import ai.cardeli.starter.contract.Menu
 import ai.cardeli.starter.contract.OrderStatus
 import ai.cardeli.starter.contract.OrderUiState
+import ai.cardeli.starter.contract.PickupPoint
+import ai.cardeli.starter.contract.StoreSuggestion
+import ai.cardeli.starter.contract.VoiceState
 import ai.cardeli.starter.feature.geo.LatLng
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DemoCommandTest {
@@ -34,11 +38,29 @@ class DemoCommandTest {
     }
 
     @Test
+    fun `S1 값도 JSON에 들어간다`() {
+        val json = DemoSnapshot.toJson(
+            OrderUiState(
+                voiceState = VoiceState.Speaking,
+                assistantText = "\"길목\" 공영주차장",
+                suggestions = listOf(StoreSuggestion("길목김밥", 1900)),
+                pickup = PickupPoint("길목 공영주차장", detourMin = 2, detourM = 1400, waitMin = 5),
+                touchCount = 0,
+            ),
+        )
+        assertTrue(json, json.contains("\"voiceState\":\"Speaking\""))
+        assertTrue(json, json.contains("\"assistantText\":\"\\\"길목\\\" 공영주차장\""))
+        assertTrue(json, json.contains("\"suggestions\":[\"길목김밥\"]"))
+        assertTrue(json, json.contains("\"pickup\":{\"name\":\"길목 공영주차장\",\"detourMin\":2,\"detourM\":1400,\"waitMin\":5}"))
+    }
+
+    @Test
     fun `state를 JSON으로 저장한다`() {
         val m = Menu("s2-2", "서현김밥", "참치김밥", 5_500)
         val json = DemoSnapshot.toJson(OrderUiState(menus = listOf(m), cart = listOf(CartItem(m, 2)), status = OrderStatus.RiderComing, riderDistanceM = 200))
         assertEquals(
-            "{\"isDriving\":false,\"status\":\"RiderComing\",\"store\":\"서현김밥\",\"cart\":[{\"id\":\"s2-2\",\"name\":\"참치김밥\",\"qty\":2}],\"totalPrice\":11000,\"riderDistanceM\":200}",
+            "{\"isDriving\":false,\"status\":\"RiderComing\",\"store\":\"서현김밥\",\"cart\":[{\"id\":\"s2-2\",\"name\":\"참치김밥\",\"qty\":2}],\"totalPrice\":11000,\"riderDistanceM\":200," +
+                "\"voiceState\":\"Idle\",\"transcript\":\"\",\"assistantText\":\"\",\"suggestions\":[],\"pickup\":null,\"touchCount\":0}",
             json,
         )
     }

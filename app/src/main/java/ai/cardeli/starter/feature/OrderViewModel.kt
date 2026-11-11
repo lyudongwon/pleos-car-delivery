@@ -65,6 +65,11 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** 주행 중일 때만 센다 */
+    fun onScreenTouched() {
+        _state.update { if (it.isDriving) it.copy(touchCount = it.touchCount + 1) else it }
+    }
+
     // ---------- F14 데모 명령 ----------
 
     private fun onDemoCommand(command: DemoCommand) {
