@@ -24,6 +24,7 @@ import ai.cardeli.starter.feature.route.PickupLog
 import ai.cardeli.starter.feature.route.RiderTracker
 import ai.cardeli.starter.feature.route.ReceiveDetector
 import ai.cardeli.starter.feature.sdk.WindowWatcher
+import ai.cardeli.starter.feature.sdk.GleoBridge
 import ai.cardeli.starter.feature.mock.DemoStore
 import ai.cardeli.starter.contract.PickupPoint
 import ai.cardeli.starter.contract.DeliveryInfo
@@ -161,6 +162,17 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         val stage = reply.stage
         // 주문 완료로 처음 넘어갈 때만 수령 지점을 고른다 (주문 뒤의 말에 다시 고르지 않게)
         if (stage is VoiceOrderFlow.Stage.Ordered && !wasOrdered) choosePickup(stage.store)
+    }
+
+    /** Gleo AI가 넘긴 주문으로 대화를 시작한다 (F15). 주문 확인 단계로 갔으면 true */
+    fun onGleoOrder(order: GleoBridge.Order): Boolean {
+        val items = parser.parse("${order.menu} ${order.quantity}개").items
+        Log.i(TAG, "Gleo 주문 ${order.menu} x${order.quantity} → $items")
+        flow.reset()
+        val reply = flow.startWithItems(items)
+        _state.update { it.withStage(reply.stage).copy(assistantText = reply.say) }
+        viewModelScope.launch { speak(reply.say) }
+        return reply.stage is VoiceOrderFlow.Stage.Confirming
     }
 
     private val pickupSelector = PickupSelector()

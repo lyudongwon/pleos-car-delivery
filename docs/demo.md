@@ -40,6 +40,7 @@ adb shell am broadcast -n ai.cardeli.starter/.feature.demo.DemoReceiver --es cmd
 ```bash
 bash scripts/smoke_s1.sh     # S1 주행 중 음성 주문: 기어 D, 대사 3개로 주문 완료까지, 터치 0회
 bash scripts/smoke_s2.sh     # S2 정차 주문 흐름 전체
+bash scripts/smoke_gleo.sh   # Gleo가 보내는 ORDER_FOOD 인텐트 → 앱 주문 흐름
 ```
 
 ## 주의

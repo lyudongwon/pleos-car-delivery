@@ -55,6 +55,20 @@ class VoiceOrderFlow(private val findStores: (category: String?) -> List<DemoSto
         }
     }
 
+    /**
+     * Gleo AI가 메뉴·수량을 정해서 넘긴 경우 (F15). 가게 제안을 건너뛰고,
+     * 경로 근처 가게 중 그 메뉴가 모두 있는 첫 가게로 바로 주문 확인을 묻는다.
+     */
+    fun startWithItems(items: List<ParsedItem>): Reply {
+        missed = 0
+        if (items.isEmpty()) return go(Stage.Idle, "무엇을 주문할지 다시 말씀해 주세요.")
+        val store = findStores(null).firstOrNull { s -> items.all { i -> s.menus.any { it.name == i.menuName } } }
+            ?: return go(Stage.Idle, "가는 길에 그 메뉴를 파는 가게가 없어요.")
+        val p = ParsedUtterance(false, null, null, store.name, items, confirm = false, cancel = false)
+        val r = chooseMenu(store, p) ?: return go(Stage.Idle, "가는 길에 그 메뉴를 파는 가게가 없어요.")
+        return Reply(r.stage, "${store.name}에서 ${r.say}")
+    }
+
     private fun start(p: ParsedUtterance): Reply? {
         if (!p.wantsOrder) return null
         val stores = findStores(p.category).take(2)

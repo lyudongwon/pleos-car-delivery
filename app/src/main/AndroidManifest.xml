@@ -33,12 +33,20 @@
         <!-- 시연 앱 본체 (Compose) -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <!-- 주행 중에도 화면을 띄울 수 있게 Distraction Optimization 선언 -->
             <meta-data android:name="distractionOptimized" android:value="true" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Gleo AI 앱 연동 (F15). assets/schema.json의 ORDER_FOOD.
+                 문서 예시는 function 이름 그대로지만, 에뮬레이터 v2.1.0 Gleo(4.2.0.15)는 "패키지명.function 이름"으로 보낸다 -->
+            <intent-filter>
+                <action android:name="ORDER_FOOD" />
+                <action android:name="ai.cardeli.starter.ORDER_FOOD" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
@@ -64,12 +72,7 @@
             android:exported="true"
             android:launchMode="singleTop">
             <meta-data android:name="distractionOptimized" android:value="true" />
-            <intent-filter>
-                <!-- 문서 예시는 function 이름 그대로지만, 에뮬레이터 v2.1.0의 Gleo(4.2.0.15)는 "패키지명.function 이름"으로 보낸다 -->
-                <action android:name="ORDER_FOOD" />
-                <action android:name="ai.cardeli.starter.ORDER_FOOD" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
+            <!-- Gleo 인텐트는 이제 MainActivity가 받는다. 이 시험 화면은 -n으로 직접 띄울 때만 쓴다 -->
         </activity>
         <!-- 시험용: LLM SDK 동작 확인 -->
         <activity

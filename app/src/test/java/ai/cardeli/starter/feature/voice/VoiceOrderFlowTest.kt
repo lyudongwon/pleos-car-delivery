@@ -67,4 +67,19 @@ class VoiceOrderFlowTest {
         assertEquals("이", Korean.iGa("모퉁이김밥"))
         assertEquals("가", Korean.iGa("라볶이"))
     }
+
+    @Test
+    fun `Gleo가 메뉴를 넘기면 그 메뉴가 있는 첫 가게로 바로 확인을 묻는다`() {
+        val f = flow()
+        val r = f.startWithItems(parser.parse("참치 김밥 1개").items)
+        assertEquals("길목김밥에서 참치김밥 하나, 5,500원이에요. 주문할까요?", r.say)
+        assertTrue(r.stage is VoiceOrderFlow.Stage.Confirming)
+        assertTrue(f.hear("응 주문해").stage is VoiceOrderFlow.Stage.Ordered)
+    }
+
+    @Test
+    fun `Gleo 메뉴를 파는 가게가 없으면 처음으로`() {
+        val r = flow().startWithItems(listOf(ParsedItem("짜장면", 1)))
+        assertTrue(r.stage is VoiceOrderFlow.Stage.Idle)
+    }
 }
