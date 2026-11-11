@@ -18,7 +18,8 @@ source scripts/demo.sh
 | `demo_state` | 현재 state를 JSON으로 저장하고 출력한다 |
 | `demo_event <이름> [메뉴 id]` | 화면 대신 이벤트를 보낸다: `AddMenu`·`RemoveMenu`(id 필요), `ReviewOrder`, `BackToMenu`, `PlaceOrder`, `ConfirmReceived` |
 | `demo_rider <위도> <경도>` | 배달기사 위치를 보낸다 (F11) |
-| `demo_utter <이름>` | 녹음 대사 `assets/voice/<이름>.pcm`을 음성 인식에 넣는다 (F2에서 연결) |
+| `demo_utter <이름>` | 녹음 대사 `assets/voice/<이름>.pcm`을 음성 인식에 넣는다. S1 대사: `s1_1_order`, `s1_2_pick`, `s1_3_yes` |
+| `demo_say "<문장>"` | 앱이 문장을 음성으로 읽는다 |
 | `demo_geo <위도> <경도>` | 차 위치를 옮긴다 (FusedLocation, `adb emu geo fix`) |
 | `demo_gear <Park·Drive·Reverse·Neutral>` | Virtual Console로 기어를 바꾼다 |
 
@@ -35,6 +36,7 @@ adb shell am broadcast -n ai.cardeli.starter/.feature.demo.DemoReceiver --es cmd
 ## 스모크 테스트
 
 ```bash
+bash scripts/smoke_s1.sh     # S1 주행 중 음성 주문: 기어 D, 대사 3개로 주문 완료까지, 터치 0회
 bash scripts/smoke_s2.sh     # S2 정차 주문 흐름 전체
 ```
 

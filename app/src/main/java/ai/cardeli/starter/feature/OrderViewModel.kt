@@ -16,6 +16,9 @@ import ai.cardeli.starter.feature.sdk.DrivingStateSource
 import ai.cardeli.starter.feature.sdk.Listener
 import ai.cardeli.starter.feature.sdk.Speaker
 import ai.cardeli.starter.feature.voice.OrderParser
+import ai.cardeli.starter.feature.voice.VoiceOrderFlow
+import ai.cardeli.starter.feature.mock.DemoRoute
+import ai.cardeli.starter.contract.StoreSuggestion
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -80,6 +83,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         when (command) {
             DemoCommand.Reset -> {
                 deliveryJob?.cancel()
+                flow.reset()
                 _state.update { initialState.copy(isDriving = it.isDriving) }
             }
             DemoCommand.Dump -> dumpState()
@@ -104,9 +108,36 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         storeNames = DemoData.s1Stores.map { it.name },
     )
 
-    /** TODO(F5): 해석 결과로 대화를 진행한다 */
-    private fun onHeard(text: String) {
-        Log.i(TAG, "들음: '$text' → ${parser.parse(text)}")
+    // TODO(F6): 경로 근처·진행 방향 앞쪽 가게만 거르는 추천으로 바꾼다
+    private val flow = VoiceOrderFlow { DemoData.s1Stores.take(2) }
+    private val routeCum = Geo.cumulativeM(DemoRoute.points)
+
+    /** 해석 결과로 대화를 한 단계 진행하고, 앱이 할 말을 읽는다 (F5) */
+    private suspend fun onHeard(text: String) {
+        val parsed = parser.parse(text)
+        val reply = flow.onHeard(parsed)
+        Log.i(TAG, "들음: '$text' → ${reply.stage::class.simpleName} '${reply.say}'")
+        _state.update { it.withStage(reply.stage).copy(assistantText = reply.say.ifEmpty { it.assistantText }) }
+        if (reply.say.isNotEmpty()) speak(reply.say)
+        // TODO(F7·F8): 주문 완료(Ordered)되면 수령 지점을 정하고 경유지로 넣는다
+    }
+
+    private suspend fun speak(text: String) {
+        _state.update { it.copy(voiceState = VoiceState.Speaking) }
+        speaker.say(text)
+        _state.update { it.copy(voiceState = VoiceState.Idle) }
+    }
+
+    private fun OrderUiState.withStage(stage: VoiceOrderFlow.Stage): OrderUiState = when (stage) {
+        VoiceOrderFlow.Stage.Idle -> copy(suggestions = emptyList(), cart = emptyList(), status = OrderStatus.Browsing)
+        is VoiceOrderFlow.Stage.ChoosingStore -> copy(
+            suggestions = stage.stores.map { s ->
+                StoreSuggestion(s.name, Geo.project(s.location, DemoRoute.points, routeCum).alongM.roundToInt())
+            },
+        )
+        is VoiceOrderFlow.Stage.ChoosingMenu -> copy(suggestions = suggestions.filter { it.storeName == stage.store.name })
+        is VoiceOrderFlow.Stage.Confirming -> copy(cart = stage.cart, status = OrderStatus.Confirming)
+        is VoiceOrderFlow.Stage.Ordered -> copy(cart = stage.cart, status = OrderStatus.Ordered)
     }
 
     private fun eventFrom(c: DemoCommand.Event): OrderEvent? {
