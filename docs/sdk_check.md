@@ -182,3 +182,17 @@
 | 앱 화면에서 TTS (ON_DEVICE, Application context) | **된다.** `speak` 후 약 0.2~0.6초 뒤 `writeAudioTrack(ai.cardeli.starter:ondevice)`로 오디오가 나간다. `onStart`는 오고 `onDone`은 오지 않는다 |
 | 두 문장 연속 | 앱이 차례로 말하게 하면 겹치지 않는다. 끝나는 시점은 글자 수로 추정: 0.9초 + 글자당 0.22초. 24자 문장에서 추정 끝(22.05초)과 마지막 오디오 쓰기(22.31초)가 0.3초 차이 |
 | 남은 음성 인식 세션 | 시험 화면(`SdkCheckActivity`)이 `stt.request()` 후 강제 종료되면 음성 서비스(`ai.pleos.playground.caas`)에 인식 세션이 남아, 0.1초마다 `ai.cardeli.starter not found check register` 오류가 쌓이고 TTS 콜백(`onStart`)이 오지 않으며 첫 문장이 재생되지 않았다. `adb shell am force-stop ai.pleos.playground.caas` 후 정상 |
+
+## F2 음성 인식 확인 (2026-11-11 밤)
+
+`feature/sdk/Listener.kt`, 데모 명령 `demo_utter <이름>`, 대사 파일 `app/src/main/assets/voice/*.pcm` (Windows Microsoft Heami 한국어 합성 음성, 16kHz·16bit·mono, 앞뒤 0.5초 무음).
+
+| 대사 | 인식 결과 |
+|---|---|
+| `s1_1_order` "가는 길에 받을 수 있는 김밥 시켜줘" | "가는 길에 받을 수 있는 김밥 시켜줘" (정확) |
+| `s1_2_pick` "첫 번째, 참치김밥 하나랑 어묵국 하나" | "첫 번째 참치김밥 하나랑 어묵국 하나" (정확, 2회 모두) |
+| `s1_3_yes` "응. 주문해." | "응 주문해" (정확) |
+
+- 인식 중간 결과가 단어 단위로 와서 `transcript`(자막)에 실시간으로 들어간다. 1초 시점에 "한", "응"처럼 앞부분이 보인다.
+- **문장 사이 쉼에서 인식이 끝난다.** 처음에 "첫 번째. 참치김밥 하나랑 어묵국 하나."로 만들었더니 마침표 뒤 쉼에서 끝나 "첫 번째"만 남았다. 대사는 마침표 없이 한 호흡으로 만든다(쉼표는 괜찮다).
+- 마이크 인식(`request`)을 쓰지 않아 음성 서비스에 세션이 남지 않는다. 세 대사를 돌린 뒤에도 `check register` 오류 0건.

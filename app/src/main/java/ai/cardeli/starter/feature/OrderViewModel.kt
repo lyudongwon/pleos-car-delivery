@@ -5,6 +5,7 @@ import ai.cardeli.starter.contract.Menu
 import ai.cardeli.starter.contract.OrderEvent
 import ai.cardeli.starter.contract.OrderStatus
 import ai.cardeli.starter.contract.OrderUiState
+import ai.cardeli.starter.contract.VoiceState
 import ai.cardeli.starter.feature.demo.DemoBus
 import ai.cardeli.starter.feature.demo.DemoCommand
 import ai.cardeli.starter.feature.demo.DemoSnapshot
@@ -12,6 +13,7 @@ import ai.cardeli.starter.feature.geo.Geo
 import ai.cardeli.starter.feature.mock.DemoData
 import ai.cardeli.starter.feature.mock.MockData
 import ai.cardeli.starter.feature.sdk.DrivingStateSource
+import ai.cardeli.starter.feature.sdk.Listener
 import ai.cardeli.starter.feature.sdk.Speaker
 import android.app.Application
 import android.util.Log
@@ -35,6 +37,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
 
     private var deliveryJob: Job? = null
     private val speaker = Speaker(app)
+    private val listener = Listener(app)
 
     init {
         viewModelScope.launch {
@@ -83,9 +86,21 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
                 ?: Log.w(TAG, "보낼 수 없는 이벤트: $command")
             is DemoCommand.Rider -> onRider(command)
             is DemoCommand.Say -> viewModelScope.launch { speaker.say(command.text) }
-            // TODO(F2): assets/voice/<name>.pcm을 음성 인식에 넣는다
-            is DemoCommand.Utter -> Log.i(TAG, "대사 넣기는 F2에서 연결: ${command.name}")
+            is DemoCommand.Utter -> viewModelScope.launch { hear(command.name) }
         }
+    }
+
+    /** 녹음 대사를 인식한다 (F2). 듣는 동안 중간 결과를 자막(transcript)으로 내보낸다 */
+    private suspend fun hear(name: String) {
+        _state.update { it.copy(voiceState = VoiceState.Listening, transcript = "") }
+        val text = listener.recognizeAsset(name) { partial -> _state.update { it.copy(transcript = partial) } }
+        _state.update { it.copy(voiceState = VoiceState.Idle, transcript = text ?: it.transcript) }
+        if (text == null) Log.w(TAG, "인식 실패: $name") else onHeard(text)
+    }
+
+    /** TODO(F5): 인식된 문장으로 대화를 진행한다 */
+    private fun onHeard(text: String) {
+        Log.i(TAG, "들음: '$text'")
     }
 
     private fun eventFrom(c: DemoCommand.Event): OrderEvent? {
@@ -163,6 +178,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         speaker.release()
+        listener.release()
         super.onCleared()
     }
 
