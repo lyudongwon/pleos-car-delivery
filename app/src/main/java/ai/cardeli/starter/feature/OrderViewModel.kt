@@ -22,6 +22,8 @@ import ai.cardeli.starter.feature.route.StoreFinder
 import ai.cardeli.starter.feature.route.PickupSelector
 import ai.cardeli.starter.feature.route.PickupLog
 import ai.cardeli.starter.feature.route.RiderTracker
+import ai.cardeli.starter.feature.route.ReceiveDetector
+import ai.cardeli.starter.feature.sdk.WindowWatcher
 import ai.cardeli.starter.feature.mock.DemoStore
 import ai.cardeli.starter.contract.PickupPoint
 import ai.cardeli.starter.contract.DeliveryInfo
@@ -51,6 +53,11 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
     private val speaker = Speaker(app)
     private val listener = Listener(app)
     private val navi = NaviClient(app)
+    private val receiveDetector = ReceiveDetector()
+    private var awaitingReceive = false
+    private val windowWatcher = WindowWatcher(app) { pos ->
+        if (receiveDetector.onWindow(pos)) viewModelScope.launch { askReceived() }
+    }
 
     init {
         viewModelScope.launch {
@@ -92,6 +99,8 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         when (command) {
             DemoCommand.Reset -> {
                 flow.reset()
+                receiveDetector.reset()
+                awaitingReceive = false
                 locationSource.clearArrival()
                 riderTracker.reset()
                 _state.update { initialState.copy(isDriving = it.isDriving) }
@@ -139,12 +148,19 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
     /** 해석 결과로 대화를 한 단계 진행하고, 앱이 할 말을 읽는다 (F5) */
     private suspend fun onHeard(text: String) {
         val parsed = parser.parse(text)
+        if (awaitingReceive) {
+            Log.i(TAG, "들음(수령 확인): '$text' confirm=${parsed.confirm}")
+            if (parsed.confirm) finishReceive() else speak("받으시면 말씀해 주세요.")
+            return
+        }
+        val wasOrdered = flow.stage is VoiceOrderFlow.Stage.Ordered
         val reply = flow.onHeard(parsed)
         Log.i(TAG, "들음: '$text' → ${reply.stage::class.simpleName} '${reply.say}'")
         _state.update { it.withStage(reply.stage).copy(assistantText = reply.say.ifEmpty { it.assistantText }) }
         if (reply.say.isNotEmpty()) speak(reply.say)
         val stage = reply.stage
-        if (stage is VoiceOrderFlow.Stage.Ordered) choosePickup(stage.store)
+        // 주문 완료로 처음 넘어갈 때만 수령 지점을 고른다 (주문 뒤의 말에 다시 고르지 않게)
+        if (stage is VoiceOrderFlow.Stage.Ordered && !wasOrdered) choosePickup(stage.store)
     }
 
     private val pickupSelector = PickupSelector()
@@ -182,8 +198,8 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
             it.copy(pickup = PickupPoint(c.name, detourMin = c.detourMin, detourM = c.detourM, waitMin = c.waitMin), assistantText = say)
         }
         speak(say)
-        addWaypoint(c.name, pickupLoc, c)
         locationSource.watchArrival(pickupLoc, ARRIVAL_RADIUS_M) { viewModelScope.launch { onArrivedAtPickup(c.name) } }
+        addWaypoint(c.name, pickupLoc, c)
     }
 
     /** 수령 지점 반경 안에 들어왔다 (F12) */
@@ -192,7 +208,28 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         Log.i(TAG, "수령 지점 도착 $name")
         val say = "${name}에 도착했어요. 기사님이 오고 있어요."
         _state.update { it.copy(atPickup = true, assistantText = say) }
+        receiveDetector.arm()
         speak(say)
+    }
+
+    /** 도착 뒤 창문이 열렸다 닫혔다: 받았는지 묻는다 (F13) */
+    private suspend fun askReceived() {
+        Log.i(TAG, "창문 열림→닫힘: 수령 후보")
+        awaitingReceive = true
+        val say = "음식 받으셨나요?"
+        _state.update { it.copy(assistantText = say) }
+        speak(say)
+    }
+
+    /** 받았다고 하면 수령 완료, 경유지를 빼고 원래 길로 (F13) */
+    private suspend fun finishReceive() {
+        awaitingReceive = false
+        locationSource.clearArrival()
+        val say = "맛있게 드세요. 원래 길로 안내할게요."
+        _state.update { it.copy(status = OrderStatus.Received, assistantText = say) }
+        speak(say)
+        val r = navi.removeWaypoint()
+        Log.i(TAG, "경유지 뺌: ${r?.let { "${it.distanceM}m ${it.timeSec}초" } ?: "경로 다시 받지 못함"}")
     }
 
     /** 고른 지점을 내비 경유지로 넣고, 넣기 전후 남은 거리·시간 차이로 +N분을 다시 잰다 (F8) */
@@ -312,6 +349,7 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         speaker.release()
         listener.release()
         navi.release()
+        windowWatcher.release()
         locationSource.release()
         super.onCleared()
     }

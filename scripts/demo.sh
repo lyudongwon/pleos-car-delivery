@@ -26,4 +26,10 @@ demo_gear()  {
   curl -s -X POST "http://localhost:8088/browser/session?client=demo" >/dev/null
   curl -s -X PUT "http://localhost:8088/vehicle/gear?gear=$1" | grep -o '"value":"[A-Za-z]*"'
 }
+# Virtual Console: 운전석 창문 0(닫힘)~100(열림)
+demo_window() {
+  "$ADB" forward tcp:8088 tcp:8088 >/dev/null
+  curl -s -X POST "http://localhost:8088/browser/session?client=demo" >/dev/null
+  curl -s -X PUT "http://localhost:8088/vehicle/body?window_fl=$1" >/dev/null
+}
 demo_start() { "$ADB" shell am force-stop "$PKG"; "$ADB" shell am start -W -n "$PKG/.MainActivity" | grep -E "Status"; }

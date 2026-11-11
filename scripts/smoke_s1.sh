@@ -29,6 +29,10 @@ wait_for "수령 지점 안내" '"pickup":{"name":"길목사거리 정차구역"
 wait_for "내비 경유지 추가" '"assistantText":"경로에 넣었어요' 40
 demo_geo 37.3995 127.1064   # 수령 지점(길목사거리 정차구역) 약 80m 앞으로 차를 옮긴다
 wait_for "수령 지점 도착 감지" '"assistantText":"길목사거리 정차구역에 도착했어요.*"atPickup":true' 20
+demo_window 100; "$ADB" shell sleep 2; demo_window 0   # 창문을 열고 음식을 받은 뒤 닫는다
+wait_for "창문 열림→닫힘: 받았는지 물음" '"assistantText":"음식 받으셨나요?"' 20
+demo_utter s1_4_received
+wait_for "수령 완료" '"status":"Received"' 25
 s="$(demo_state)"
 echo "$s" | grep -q '"touchCount":0' && echo "  ok  화면 터치 0회" || { echo "  FAIL 터치 횟수 → $s"; fail=1; }
 echo "$s" | grep -q '"isDriving":true' && echo "  ok  주행 중" || { echo "  FAIL 주행 상태 → $s"; fail=1; }

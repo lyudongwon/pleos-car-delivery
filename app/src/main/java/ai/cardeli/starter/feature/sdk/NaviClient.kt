@@ -132,6 +132,14 @@ class NaviClient(context: Context) {
         return awaitRoute(20_000)
     }
 
+    /** 넣었던 경유지(FIRST)를 빼고, 원래 목적지만으로 다시 잡힌 경로의 남은 거리·시간을 돌려준다 (F13) */
+    suspend fun removeWaypoint(): Remain? {
+        if (!isReady() || waypoint == null) return null
+        withTimeoutOrNull(5_000) { awaitAfter(cancelled) { navi.removeWaypoint(WaypointIndex.FIRST) } }
+        waypoint = null
+        return awaitRoute(20_000)
+    }
+
     /** 콜백을 놓치지 않게 먼저 구독하고 요청한다 */
     private suspend fun <T> awaitAfter(flow: MutableSharedFlow<T>, request: () -> Unit): T = coroutineScope {
         val result = async(start = CoroutineStart.UNDISPATCHED) { flow.first() }

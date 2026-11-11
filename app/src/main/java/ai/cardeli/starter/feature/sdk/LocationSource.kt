@@ -1,5 +1,6 @@
 package ai.cardeli.starter.feature.sdk
 
+import ai.cardeli.starter.feature.geo.Geo
 import ai.cardeli.starter.feature.geo.LatLng
 import ai.pleos.playground.location.fused.FusedLocation
 import ai.pleos.playground.location.fused.listener.FusedLocationListener
@@ -67,6 +68,12 @@ class LocationSource(context: Context) {
                 override fun onRegistered(id: String) {
                     alertId = id
                     Log.i(TAG, "근접 알림 등록 $id (${center.lat}, ${center.lng}) ${radiusM}m")
+                    // ENTER는 밖에서 안으로 들어올 때만 온다. 등록 때 이미 안에 있으면 바로 도착으로 본다
+                    val here = _location.value
+                    if (here != null && Geo.distanceM(here, center) <= radiusM) {
+                        Log.i(TAG, "등록 때 이미 반경 안")
+                        onEnter()
+                    }
                 }
                 override fun onTransition(e: ProximityAlertEvent) {
                     Log.i(TAG, "근접 알림 ${e.transition}")
