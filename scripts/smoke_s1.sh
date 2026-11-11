@@ -27,9 +27,11 @@ demo_utter s1_3_yes
 wait_for "주문 완료" '"status":"Ordered"'
 wait_for "수령 지점 안내" '"pickup":{"name":"길목사거리 정차구역","detourMin":0' 30
 wait_for "내비 경유지 추가" '"assistantText":"경로에 넣었어요' 40
+demo_geo 37.3995 127.1064   # 수령 지점(길목사거리 정차구역) 약 80m 앞으로 차를 옮긴다
+wait_for "수령 지점 도착 감지" '"assistantText":"길목사거리 정차구역에 도착했어요.*"atPickup":true' 20
 s="$(demo_state)"
 echo "$s" | grep -q '"touchCount":0' && echo "  ok  화면 터치 0회" || { echo "  FAIL 터치 횟수 → $s"; fail=1; }
 echo "$s" | grep -q '"isDriving":true' && echo "  ok  주행 중" || { echo "  FAIL 주행 상태 → $s"; fail=1; }
-demo_gear Park >/dev/null
+demo_geo 37.4127212 127.094681; demo_gear Park >/dev/null
 [ $fail -eq 0 ] && echo "S1 스모크 통과" || echo "S1 스모크 실패"
 exit $fail

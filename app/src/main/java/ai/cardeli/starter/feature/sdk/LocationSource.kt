@@ -4,6 +4,10 @@ import ai.cardeli.starter.feature.geo.LatLng
 import ai.pleos.playground.location.fused.FusedLocation
 import ai.pleos.playground.location.fused.listener.FusedLocationListener
 import ai.pleos.playground.location.fused.model.LocationData
+import ai.pleos.playground.location.fused.listener.ProximityAlertListener
+import ai.pleos.playground.location.fused.model.ProximityAlertEvent
+import ai.pleos.playground.location.fused.model.ProximityAlertRequest
+import ai.pleos.playground.location.fused.model.ProximityTransition
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -49,7 +53,41 @@ class LocationSource(context: Context) {
         }
     }
 
+    private var alertId: String? = null
+
+    /**
+     * [center] 반경 [radiusM] 안에 차가 들어오면 [onEnter]를 부른다 (F12 도착 감지). 이전 알림은 지운다.
+     * 에뮬레이터에서 내비 위치는 움직이지 않아 onWayPointArrived를 쓸 수 없어서, GPS를 따라가는 FusedLocation 근접 알림을 쓴다.
+     */
+    fun watchArrival(center: LatLng, radiusM: Float, onEnter: () -> Unit) {
+        clearArrival()
+        try {
+            val req = ProximityAlertRequest(center.lat, center.lng, radiusM, setOf(ProximityTransition.ENTER))
+            fused.addProximityAlert(req, object : ProximityAlertListener {
+                override fun onRegistered(id: String) {
+                    alertId = id
+                    Log.i(TAG, "근접 알림 등록 $id (${center.lat}, ${center.lng}) ${radiusM}m")
+                }
+                override fun onTransition(e: ProximityAlertEvent) {
+                    Log.i(TAG, "근접 알림 ${e.transition}")
+                    if (e.transition == ProximityTransition.ENTER) onEnter()
+                }
+                override fun onError(e: Exception) {
+                    Log.w(TAG, "근접 알림 오류 ${e.message}")
+                }
+            })
+        } catch (e: Exception) {
+            Log.w(TAG, "근접 알림 등록 실패", e)
+        }
+    }
+
+    fun clearArrival() {
+        alertId?.let { try { fused.removeProximityAlert(it) } catch (_: Exception) {} }
+        alertId = null
+    }
+
     fun release() {
+        clearArrival()
         try { fused.release() } catch (_: Exception) {}
     }
 

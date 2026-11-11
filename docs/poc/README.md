@@ -18,7 +18,7 @@
 | 경로 근처 가게만 추천 | 3, 5-1 | F6 | ✅ | FusedLocation 실제 차 위치를 OSRM 경로에 내려, 앞쪽 500m 안 가게만 지나가는 순서로 추천. 출발점: 길목김밥(앞 1,999m)·모퉁이김밥(앞 3,612m), 길목김밥을 지난 위치: 모퉁이김밥만(앞 1,108m). 지나친 시흥김밥·1km 떨어진 먼길김밥은 빠짐 (11/11) |
 | 차 현재 좌표를 받는 곳으로 사용 | 3, 5-2 | F10 | ✅ | S2 주문 때 FusedLocation 실제 차 좌표(37.3838, 127.12400)·등록 번호판·차에서 읽은 차종(Hyundai 42dot Connect)으로 배달 정보 생성, 주소 입력 없음. 기사 거리도 이 좌표 기준 (11/11, `scripts/smoke_s2.sh`) |
 | 차종 정보 조회 | 5-2 | F10 | ✅ | INFO_MAKE·INFO_MODEL = "Hyundai 42dot" / "Connect". 차량 번호(`getCRNInfo`)는 "invalid"라 사용자 등록값 사용 |
-| 수령 지점 도착 감지 | 5-1 | F12 | ✅ | FusedLocation `addProximityAlert` 반경 100m ENTER·EXIT 확인. `onWayPointArrived`는 미확인 |
+| 수령 지점 도착 감지 | 5-1 | F12 | ✅ | 앱 S1 흐름에서 수령 지점 반경 100m 근접 알림 등록, 차 위치를 약 80m 앞으로 옮기자 ENTER → "길목사거리 정차구역에 도착했어요" 안내 (11/11, `scripts/smoke_s1.sh`). `onWayPointArrived`는 에뮬레이터 내비 위치가 안 움직여 여전히 미확인 |
 | 창문 열고 닫으면 수령 감지 | 5-1, 5-2 | F13 | ✅ | `registerWindowPosition` 열림 10 → 닫힘 0 이벤트 (`docs/sdk_check.md`) |
 | 배달기사 접근 시 음성 알림 | 5-1 | F11 | ✅ | 기사 좌표(adb로 입력)와 실제 차 좌표 거리를 계산해 200m 안 첫 진입 때 "배달기사가 곧 도착해요"(188m), 30m 안에서 "도착했어요"(29m)를 한 번씩 음성 안내 (11/11, `scripts/smoke_s2.sh`). 기사 위치는 실제 기사 앱 대신 명령으로 넣는다 |
 | Gleo AI에 말하면 주문 시작 | 5-1, 5-2 | F15 | ✅ | schema.json 등록 후 Gleo가 앱으로 넘김 (`docs/gleo_check.md`) |

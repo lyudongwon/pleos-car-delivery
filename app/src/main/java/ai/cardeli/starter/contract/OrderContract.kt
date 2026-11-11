@@ -44,6 +44,7 @@ data class OrderUiState(
     val suggestions: List<StoreSuggestion> = emptyList(),  // 경로 근처 추천 가게 (최대 2개)
     val pickup: PickupPoint? = null,         // 정해진 수령 지점. 정해지기 전에는 null
     val touchCount: Int = 0,                 // 주행 중 화면 터치 횟수. 영상에서 '화면 터치 0회'로 보여준다
+    val atPickup: Boolean = false,           // 차가 수령 지점(반경 100m)에 도착했는지
 
     // ---------- 배달기사에게 가는 정보 (F10·F11 기사 화면) ----------
     val delivery: DeliveryInfo? = null,      // 주문 뒤 채워진다

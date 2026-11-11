@@ -92,6 +92,7 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         when (command) {
             DemoCommand.Reset -> {
                 flow.reset()
+                locationSource.clearArrival()
                 riderTracker.reset()
                 _state.update { initialState.copy(isDriving = it.isDriving) }
             }
@@ -182,6 +183,16 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         }
         speak(say)
         addWaypoint(c.name, pickupLoc, c)
+        locationSource.watchArrival(pickupLoc, ARRIVAL_RADIUS_M) { viewModelScope.launch { onArrivedAtPickup(c.name) } }
+    }
+
+    /** 수령 지점 반경 안에 들어왔다 (F12) */
+    private suspend fun onArrivedAtPickup(name: String) {
+        if (_state.value.atPickup) return
+        Log.i(TAG, "수령 지점 도착 $name")
+        val say = "${name}에 도착했어요. 기사님이 오고 있어요."
+        _state.update { it.copy(atPickup = true, assistantText = say) }
+        speak(say)
     }
 
     /** 고른 지점을 내비 경유지로 넣고, 넣기 전후 남은 거리·시간 차이로 +N분을 다시 잰다 (F8) */
@@ -307,6 +318,6 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
 
     private companion object {
         const val TAG = "Demo"
-        const val ARRIVED_M = 30
+        const val ARRIVAL_RADIUS_M = 100f
     }
 }

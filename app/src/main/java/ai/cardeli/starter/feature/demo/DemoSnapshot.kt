@@ -26,6 +26,7 @@ object DemoSnapshot {
         append(s.pickup?.let { "{\"name\":${str(it.name)},\"detourMin\":${it.detourMin},\"detourM\":${it.detourM},\"waitMin\":${it.waitMin}}" } ?: "null")
         append(',')
         append("\"touchCount\":").append(s.touchCount).append(',')
+        append("\"atPickup\":").append(s.atPickup).append(',')
         append("\"delivery\":")
         append(s.delivery?.let { "{\"place\":${str(it.placeLabel)},\"lat\":${it.latitude},\"lng\":${it.longitude},\"plate\":${str(it.plate)},\"color\":${str(it.color)},\"carModel\":${str(it.carModel)}}" } ?: "null")
         append('}')

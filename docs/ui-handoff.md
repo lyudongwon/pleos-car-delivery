@@ -2,6 +2,10 @@
 
 contract(`contract/OrderContract.kt`)가 바뀔 때마다 여기에 적는다. 위에 있을수록 최신이다.
 
+## 2026-11-11 · 수령 지점 도착(atPickup) 추가
+
+`OrderUiState.atPickup: Boolean` — 차가 수령 지점 반경 100m 안에 들어오면 true. DrivingScreen에서 "도착" 표시에 쓴다. 이때 `assistantText`는 "○○에 도착했어요. 기사님이 오고 있어요."다.
+
 ## 2026-11-11 · 배달 정보(delivery) 추가
 
 `OrderUiState.delivery: DeliveryInfo?` — 주문 뒤 채워진다. 기사에게 가는 정보다(기사 화면, 배달 화면).
