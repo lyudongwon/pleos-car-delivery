@@ -1,0 +1,14 @@
+{
+  "measuredAt": "2026-11-11T22:25+09:00",
+  "method": "Pleos Connect 에뮬레이터 v2.1.0 NaviHelper. 출발: 내비 고정 위치(37.4127212,127.094681). 목적지만 경로 요청 후, 지점마다 requestRouteWithWaypoints(목적지, [지점])로 경로를 새로 요청해 getDestinationInfo 남은 거리·시간을 읽음. 현재→지점은 requestTrip. 내비 값은 100m·60초 단위 반올림. 시험 코드: SdkCheckActivity --es test M",
+  "destination": {"name": "서현역", "lat": 37.384553, "lng": 127.123706},
+  "base": {"remainM": 5100, "remainSec": 1020},
+  "points": [
+    {"id": "store-s1-a", "name": "길목김밥 (가게 들러 포장)", "withM": 5700, "withSec": 1140, "detourM": 600, "detourSec": 120, "tripM": 2088, "tripEtaSec": 406},
+    {"id": "p0", "name": "길목 공영주차장", "withM": 5700, "withSec": 1140, "detourM": 600, "detourSec": 120, "tripM": 2291, "tripEtaSec": 437},
+    {"id": "p1", "name": "길목사거리 정차구역", "withM": 5100, "withSec": 1020, "detourM": 0, "detourSec": 0, "tripM": 2182, "tripEtaSec": 416},
+    {"id": "p2", "name": "동쪽 상가 주차장", "withM": 5600, "withSec": 1320, "detourM": 500, "detourSec": 300, "tripM": 2430, "tripEtaSec": 509},
+    {"id": "p3", "name": "서쪽 공원 주차장", "withM": 5900, "withSec": 1200, "detourM": 800, "detourSec": 180, "tripM": 2336, "tripEtaSec": 443},
+    {"id": "p4", "name": "남쪽 정차구역", "withM": 5100, "withSec": 1020, "detourM": 0, "detourSec": 0, "tripM": 2290, "tripEtaSec": 426}
+  ]
+}

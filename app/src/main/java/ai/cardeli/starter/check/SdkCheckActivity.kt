@@ -101,7 +101,7 @@ class SdkCheckActivity : Activity() {
         override fun onRoutingCompleted() { log("[Navi] onRoutingCompleted"); afterRoute() }
         override fun onRouteStateInfo(info: RouteStateInfo) = log("[Navi] onRouteStateInfo = $info")
         override fun onDestinationInfo(info: DestinationInfo) = log("[Navi] onDestinationInfo = ${info.name} ${info.latitude},${info.longitude} 남은 ${info.remainDistance}m ${info.remainTime}s" +
-            if (intent.getStringExtra("test") == "T") " | [T] $tLabel dest ${info.remainDistance}m ${info.remainTime}s" else "")
+            if (intent.getStringExtra("test") in setOf("T", "M")) " | [T] $tLabel dest ${info.remainDistance}m ${info.remainTime}s" else "")
         override fun onWaypointChanged(info: WaypointChangedInfo) = log("[Navi] onWaypointChanged = ${info.index} ${info.cmdType} ${info.routeStartInfo}")
         override fun onWayPointInfo(list: List<WaypointInfo>) = log("[Navi] onWayPointInfo (${list.size}개) = " + list.joinToString { "${it.name} (${it.latitude},${it.longitude}) 남은 ${it.remainDistance}m ${it.remainTime}s" })
         override fun onWayPointArrived(info: WaypointArrivedInfo) = log("[Navi] onWayPointArrived = ${info.index} ${info.name} ${info.distance}m ${info.duration}s")
@@ -131,6 +131,7 @@ class SdkCheckActivity : Activity() {
         val dLat = lat + 0.03; val dLng = lng + 0.03   // 북동쪽 약 4km
         val dest = RouteInfo(dLat, dLng, null, null, "시험 목적지", "", "", "", RouteOption.RECOMMENDED, "", false)
         if (intent.getStringExtra("test") == "T") { measureCandidates(lat, lng, dest); return }
+        if (intent.getStringExtra("test") == "M") { measureDemoPickups(); return }
         if (intent.getStringExtra("test") == "D") {
             // 시험 D: 실제 흐름. 목적지만 잡고 안내가 시작된 뒤, 충분히 기다렸다가 만남 지점을 한 번 추가
             log("[Navi] D) requestRoute → 목적지만")
@@ -157,6 +158,32 @@ class SdkCheckActivity : Activity() {
     }
 
     private fun afterRoute() {}
+
+    /**
+     * 시험 M (F7 실측): S1 시연 경로(시흥동 → 서현역)에서 '가게 들러 포장'과 수령 후보 5곳의
+     * 추가 거리·시간을 내비로 잰다. 후보마다 경로를 새로 요청한다(0단계에서 확인한 방식).
+     * 같은 지점에 requestTrip도 불러 현재 위치 → 지점 도착 시간(대기 시간 계산용)을 받는다.
+     * 로그: [M] base / [M] id=... dest / [M] id=... trip
+     */
+    private fun measureDemoPickups() {
+        val d = ai.cardeli.starter.feature.mock.DemoData
+        val dest = RouteInfo(d.s1Destination.lat, d.s1Destination.lng, null, null, d.S1_DESTINATION_NAME, "", "", "", RouteOption.RECOMMENDED, "", false)
+        val store = d.s1Stores.first()
+        val points = listOf("store-${store.id}" to store.location) + d.s1Pickups.map { it.id to it.location }
+        log("[M] requestRoute → ${d.S1_DESTINATION_NAME}. 지점 ${points.size}개")
+        navi.requestRoute(dest)
+        main.postDelayed({ tLabel = "M base"; navi.getDestinationInfo() }, 12_000)
+        points.forEachIndexed { i, (id, p) ->
+            val t0 = 15_000L + i * 16_000L
+            main.postDelayed({
+                log("[M] id=$id requestRouteWithWaypoints (${p.lat},${p.lng})")
+                navi.requestRouteWithWaypoints(ai.pleos.playground.navi.data.RouteWithWaypointsRequest(dest,
+                    listOf(RequestWaypointInfo(p.lat, p.lng, id, WaypointIndex.FIRST, "", "", "", ""))))
+            }, t0)
+            main.postDelayed({ tLabel = "M id=$id"; navi.getDestinationInfo() }, t0 + 12_000)
+            main.postDelayed({ tLabel = "M id=$id"; navi.requestTrip(TripRequest(p.lat, p.lng, "", id, "")) }, t0 + 14_000)
+        }
+    }
 
     /**
      * 시험 T (0단계 PoC): 후보 지점마다 경유지를 바꿔 넣어 목적지까지 남은 거리·시간이 얼마나 늘어나는지 잰다.

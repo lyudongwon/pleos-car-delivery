@@ -26,6 +26,9 @@ data class PickupCandidate(
 
 data class DemoVehicle(val plate: String, val color: String)
 
+/** 내비 실측: 원래 경로보다 늘어나는 거리·시간, 현재 위치에서 그 지점까지 걸리는 시간 */
+data class PickupMeasure(val detourM: Int, val detourSec: Int, val etaSec: Int)
+
 object DemoData {
 
     private fun menusOf(storeName: String, prefix: String) = listOf(
@@ -60,6 +63,20 @@ object DemoData {
         PickupCandidate("p2", "동쪽 상가 주차장", LatLng(37.400661, 127.110269), PickupType.PublicParking),
         PickupCandidate("p3", "서쪽 공원 주차장", LatLng(37.400212, 127.103937), PickupType.PublicParking),
         PickupCandidate("p4", "남쪽 정차구역", LatLng(37.397882, 127.106944), PickupType.StopZone),
+    )
+
+    /**
+     * 내비 실측값 (11/11, docs/poc/F7_pickup_measure_1111.json). S1 출발점 → 서현역 경로 기준.
+     * detour = (지점을 경유지로 넣은 경로) − (목적지만), eta = 현재 위치 → 지점(requestTrip).
+     * 내비 값은 100m·60초 단위로 반올림돼 있다. 출발점이 아닌 곳에서는 맞지 않는다.
+     */
+    val s1Measures = mapOf(
+        "store-s1-a" to PickupMeasure(detourM = 600, detourSec = 120, etaSec = 406),
+        "p0" to PickupMeasure(detourM = 600, detourSec = 120, etaSec = 437),
+        "p1" to PickupMeasure(detourM = 0, detourSec = 0, etaSec = 416),
+        "p2" to PickupMeasure(detourM = 500, detourSec = 300, etaSec = 509),
+        "p3" to PickupMeasure(detourM = 800, detourSec = 180, etaSec = 443),
+        "p4" to PickupMeasure(detourM = 0, detourSec = 0, etaSec = 426),
     )
 
     // ---------- S2: 정차 중 주문 (학원 주차장) ----------

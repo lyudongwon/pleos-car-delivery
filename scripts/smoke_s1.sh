@@ -24,6 +24,7 @@ demo_utter s1_2_pick
 wait_for "참치김밥+어묵국 9,500원 확인" '"status":"Confirming".*"totalPrice":9500'
 demo_utter s1_3_yes
 wait_for "주문 완료" '"status":"Ordered"'
+wait_for "수령 지점 안내" '"pickup":{"name":"길목사거리 정차구역","detourMin":0' 30
 s="$(demo_state)"
 echo "$s" | grep -q '"touchCount":0' && echo "  ok  화면 터치 0회" || { echo "  FAIL 터치 횟수 → $s"; fail=1; }
 echo "$s" | grep -q '"isDriving":true' && echo "  ok  주행 중" || { echo "  FAIL 주행 상태 → $s"; fail=1; }

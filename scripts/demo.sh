@@ -15,6 +15,8 @@ demo_rider() { demo_cmd --es cmd rider --es lat "$1" --es lng "$2"; }
 # AAOS는 앱이 사용자 10으로 돈다
 DEMO_USER="${DEMO_USER:-$("$ADB" shell am get-current-user | tr -dc '0-9')}"
 demo_state() { demo_cmd --es cmd dump; "$ADB" shell sleep 1; "$ADB" shell run-as "$PKG" --user "$DEMO_USER" cat files/demo_state.json; echo; }
+# F7 수령 지점 계산 로그 출력
+demo_pickup_log() { "$ADB" shell run-as "$PKG" --user "$DEMO_USER" cat files/pickup_log.json; echo; }
 # 차량 위치 (FusedLocation): 인자는 위도 경도, adb에는 경도 위도 순서로 넘긴다
 demo_geo()   { "$ADB" emu geo fix "$2" "$1" >/dev/null; }
 # Virtual Console: 기어 바꾸기 (heartbeat 후 요청)

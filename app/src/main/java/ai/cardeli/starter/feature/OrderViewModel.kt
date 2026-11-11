@@ -16,6 +16,10 @@ import ai.cardeli.starter.feature.sdk.DrivingStateSource
 import ai.cardeli.starter.feature.sdk.Listener
 import ai.cardeli.starter.feature.sdk.LocationSource
 import ai.cardeli.starter.feature.route.StoreFinder
+import ai.cardeli.starter.feature.route.PickupSelector
+import ai.cardeli.starter.feature.route.PickupLog
+import ai.cardeli.starter.feature.mock.DemoStore
+import ai.cardeli.starter.contract.PickupPoint
 import ai.cardeli.starter.feature.sdk.Speaker
 import ai.cardeli.starter.feature.voice.OrderParser
 import ai.cardeli.starter.feature.voice.VoiceOrderFlow
@@ -131,7 +135,32 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         Log.i(TAG, "들음: '$text' → ${reply.stage::class.simpleName} '${reply.say}'")
         _state.update { it.withStage(reply.stage).copy(assistantText = reply.say.ifEmpty { it.assistantText }) }
         if (reply.say.isNotEmpty()) speak(reply.say)
-        // TODO(F7·F8): 주문 완료(Ordered)되면 수령 지점을 정하고 경유지로 넣는다
+        val stage = reply.stage
+        if (stage is VoiceOrderFlow.Stage.Ordered) choosePickup(stage.store)
+        // TODO(F8): 고른 지점을 내비 경유지로 넣고 +N분을 다시 잰다
+    }
+
+    private val pickupSelector = PickupSelector()
+
+    /** 수령 지점을 고르고(F7), 계산 로그를 남기고, 안내한다 */
+    private suspend fun choosePickup(store: DemoStore) {
+        val candidates = DemoData.s1Pickups.takeIf { store.id == "s1-a" }.orEmpty()   // 후보 실측은 길목김밥 근처만 있다
+        val sel = pickupSelector.choose(store, candidates, DemoData.s1Measures)
+        if (sel == null) {
+            Log.w(TAG, "${store.name} 근처 수령 후보 실측값이 없음")
+            val say = "${store.name} 앞에서 받을게요."
+            _state.update { it.copy(assistantText = say) }
+            speak(say)
+            return
+        }
+        File(getApplication<Application>().filesDir, "pickup_log.json").writeText(PickupLog.toJson(store, sel, candidates))
+        Log.i(TAG, "수령 지점 ${sel.chosen.name} +${sel.chosen.detourMin}분(+${sel.chosen.detourM}m) 대기 ${sel.chosen.waitMin}분 / 포장 +${sel.takeout?.detourMin}분(+${sel.takeout?.detourM}m)")
+        val c = sel.chosen
+        val say = "${c.name}에서 받으세요. " + if (c.waitMin > 0) "도착하면 ${c.waitMin}분쯤 기다려요." else "도착하면 바로 받을 수 있어요."
+        _state.update {
+            it.copy(pickup = PickupPoint(c.name, detourMin = c.detourMin, detourM = c.detourM, waitMin = c.waitMin), assistantText = say)
+        }
+        speak(say)
     }
 
     private suspend fun speak(text: String) {
