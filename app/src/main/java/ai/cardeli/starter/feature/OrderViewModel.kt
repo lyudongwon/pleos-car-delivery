@@ -12,6 +12,7 @@ import ai.cardeli.starter.feature.geo.Geo
 import ai.cardeli.starter.feature.mock.DemoData
 import ai.cardeli.starter.feature.mock.MockData
 import ai.cardeli.starter.feature.sdk.DrivingStateSource
+import ai.cardeli.starter.feature.sdk.Speaker
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -33,6 +34,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
     val state: StateFlow<OrderUiState> = _state.asStateFlow()
 
     private var deliveryJob: Job? = null
+    private val speaker = Speaker(app)
 
     init {
         viewModelScope.launch {
@@ -75,6 +77,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
             is DemoCommand.Event -> eventFrom(command)?.let(::onEvent)
                 ?: Log.w(TAG, "보낼 수 없는 이벤트: $command")
             is DemoCommand.Rider -> onRider(command)
+            is DemoCommand.Say -> viewModelScope.launch { speaker.say(command.text) }
             // TODO(F2): assets/voice/<name>.pcm을 음성 인식에 넣는다
             is DemoCommand.Utter -> Log.i(TAG, "대사 넣기는 F2에서 연결: ${command.name}")
         }
@@ -152,6 +155,11 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
                 else -> null
             }
         }
+
+    override fun onCleared() {
+        speaker.release()
+        super.onCleared()
+    }
 
     private companion object {
         const val TAG = "Demo"

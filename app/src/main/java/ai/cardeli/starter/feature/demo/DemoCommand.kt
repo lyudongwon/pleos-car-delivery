@@ -20,6 +20,9 @@ sealed interface DemoCommand {
     /** 녹음해 둔 대사 파일(assets/voice/<name>.pcm)을 음성 인식에 넣는다 (F2) */
     data class Utter(val name: String) : DemoCommand
 
+    /** 문장을 음성으로 말한다 (F4 확인용) */
+    data class Say(val text: String) : DemoCommand
+
     /** 배달기사 위치 (F11) */
     data class Rider(val location: LatLng) : DemoCommand
 
@@ -32,6 +35,7 @@ sealed interface DemoCommand {
             "reset" -> Reset
             "dump" -> Dump
             "utter" -> extra("name")?.let { Utter(it) }
+            "say" -> extra("text")?.takeIf { it.isNotBlank() }?.let { Say(it) }
             "rider" -> {
                 val lat = extra("lat")?.toDoubleOrNull()
                 val lng = extra("lng")?.toDoubleOrNull()

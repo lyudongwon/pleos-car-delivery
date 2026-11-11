@@ -172,3 +172,13 @@
 | 4 | 37.44272, 127.11268 | 9,700m · 1,380초 | +4.0km | +10분 |
 
 결론: 후보별 추가 시간은 **내비에 후보마다 경로를 새로 요청해서 실측**할 수 있다. 5곳이면 1분쯤 걸려 시연 중 실시간으로 하기엔 느리므로, 시연 후보는 미리 이 방식으로 재 두고(F7) 앱은 고른 지점 하나만 실제로 경유지에 넣어 "+N분"을 다시 잰다(F8).
+
+## F4 음성 응답 확인 (2026-11-11 밤)
+
+`feature/sdk/Speaker.kt`, 데모 명령 `demo_say "<문장>"`, 로그 `adb logcat -s Speaker` 와 음성 서비스 로그 `[GAAS]OnDeviceStreamPlayerImpl`.
+
+| 항목 | 결과 |
+|---|---|
+| 앱 화면에서 TTS (ON_DEVICE, Application context) | **된다.** `speak` 후 약 0.2~0.6초 뒤 `writeAudioTrack(ai.cardeli.starter:ondevice)`로 오디오가 나간다. `onStart`는 오고 `onDone`은 오지 않는다 |
+| 두 문장 연속 | 앱이 차례로 말하게 하면 겹치지 않는다. 끝나는 시점은 글자 수로 추정: 0.9초 + 글자당 0.22초. 24자 문장에서 추정 끝(22.05초)과 마지막 오디오 쓰기(22.31초)가 0.3초 차이 |
+| 남은 음성 인식 세션 | 시험 화면(`SdkCheckActivity`)이 `stt.request()` 후 강제 종료되면 음성 서비스(`ai.pleos.playground.caas`)에 인식 세션이 남아, 0.1초마다 `ai.cardeli.starter not found check register` 오류가 쌓이고 TTS 콜백(`onStart`)이 오지 않으며 첫 문장이 재생되지 않았다. `adb shell am force-stop ai.pleos.playground.caas` 후 정상 |

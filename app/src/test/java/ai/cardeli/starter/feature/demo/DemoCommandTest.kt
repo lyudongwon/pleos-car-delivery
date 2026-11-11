@@ -18,6 +18,7 @@ class DemoCommandTest {
         assertEquals(DemoCommand.Reset, parse("cmd" to "reset"))
         assertEquals(DemoCommand.Dump, parse("cmd" to "DUMP"))
         assertEquals(DemoCommand.Utter("order_1"), parse("cmd" to "utter", "name" to "order_1"))
+        assertEquals(DemoCommand.Say("안녕하세요"), parse("cmd" to "say", "text" to "안녕하세요"))
         assertEquals(DemoCommand.Event("AddMenu", "s2-2"), parse("cmd" to "event", "name" to "AddMenu", "id" to "s2-2"))
         assertEquals(DemoCommand.Rider(LatLng(37.3851, 127.1256)), parse("cmd" to "rider", "lat" to "37.3851", "lng" to "127.1256"))
     }
@@ -26,6 +27,7 @@ class DemoCommandTest {
     fun `값이 빠지거나 모르는 명령이면 null`() {
         assertNull(parse("cmd" to "fly"))
         assertNull(parse("cmd" to "utter"))
+        assertNull(parse("cmd" to "say", "text" to "  "))
         assertNull(parse("cmd" to "rider", "lat" to "37.1"))
         assertNull(parse("cmd" to "rider", "lat" to "abc", "lng" to "127"))
         assertNull(parse())
