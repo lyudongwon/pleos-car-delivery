@@ -48,4 +48,7 @@ dependencies {
     // ViewModel · StateFlow 수집
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.4")
+
+    // 단위 테스트 (순수 계산 로직)
+    testImplementation("junit:junit:4.13.2")
 }
