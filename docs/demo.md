@@ -46,6 +46,7 @@ adb shell am broadcast -n ai.cardeli.starter/.feature.demo.DemoReceiver --es cmd
 
 ```bash
 bash scripts/run_all.sh   # 녹화 전·큰 변경 뒤: 재부팅부터 세 스모크 무폴링까지 한 번에, 결과 docs/poc/e2e/
+bash scripts/rehearsal.sh   # 시연 순서·간격대로 S1→S2 한 사이클: 녹화·장면 캡처·타임라인(음성 겹침 검사), 결과 docs/poc/rehearsal/<시각>/
 PASSIVE=1 bash scripts/smoke_s1.sh   # 시연 조건으로 확인
 NO_KEEPALIVE=1 PASSIVE=1 bash scripts/smoke_s1.sh   # 포그라운드 서비스를 끄고 돌려, 동결 감지가 실패로 잡는지 확인(실패해야 정상)
 bash scripts/smoke_s1.sh     # S1 주행 중 음성 주문: 기어 D, 대사 3개로 주문 완료까지, 터치 0회

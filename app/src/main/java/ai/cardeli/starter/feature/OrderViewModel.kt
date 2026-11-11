@@ -251,9 +251,11 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         _state.update {
             it.copy(pickup = PickupPoint(c.name, detourMin = c.detourMin, detourM = c.detourM, waitMin = c.waitMin), assistantText = say)
         }
-        speak(say)
         locationSource.watchArrival(pickupLoc, ARRIVAL_RADIUS_M) { viewModelScope.launch { onArrivedAtPickup(c.name) } }
-        addWaypoint(c.name, pickupLoc, c)
+        // 경유지 재탐색(약 8초)을 안내 말과 함께 시작한다. 말을 다 하고 시작하면 그만큼 말이 끊긴다(11/12 리허설)
+        val waypoint = viewModelScope.launch { addWaypoint(c.name, pickupLoc, c) }
+        speak(say)
+        waypoint.join()
     }
 
     /** 수령 지점 반경 안에 들어왔다 (F12) */
