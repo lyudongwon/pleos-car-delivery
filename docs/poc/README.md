@@ -9,7 +9,7 @@
 
 | 기획서 주장 | 지원서 | 기능 | 상태 | 근거 |
 |---|---|---|---|---|
-| 정차 중엔 화면, 주행 중엔 음성으로 자동 전환 | 3, 5-1 | F1 | ✅ | 기어 D에서 UXR 켜짐, DO 선언 앱은 70km/h에서도 화면 유지 (`docs/sdk_check.md`) |
+| 정차 중엔 화면, 주행 중엔 음성으로 자동 전환 | 3, 5-1 | F1 | ✅ | 기어 D에서 UXR 켜짐, DO 선언 앱은 70km/h에서도 화면 유지. 앱에서 기어 P↔D에 따라 MenuScreen↔DrivingScreen 전환 확인(11/11) (`docs/sdk_check.md`) |
 | 주행 중 음성으로 주문 (STT) | 3, 5-2 | F2 | ✅ | ON_DEVICE로 녹음 파일을 `sendAudio`에 넣어 인식 성공, 중간 결과도 옴 (`docs/sdk_check.md`) |
 | 음성으로 안내 (TTS) | 5-2 | F4 | ❌ | 초기화·onStart까지 확인, 재생 완료 `onDone`은 미확인 |
 | 고른 지점을 내비 경유지로 자동 추가 | 3, 5-2 | F8 | ✅ | 안내 중 `addWaypoint` 성공, 재탐색 약 5.5초, 목적지 유지 (`docs/sdk_check.md`) |

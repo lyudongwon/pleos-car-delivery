@@ -138,3 +138,13 @@
 | SERVER 모드 | 요청은 만들지만 인증 토큰이 없어(expired, uaToken 비어 있음) 서버로 안 보냄. 오류 콜백도 없음. registerApp(Client ID, Client Secret) 필요 |
 
 시험 코드: `LlmCheckActivity` (`adb shell am start -n ai.cardeli.starter/.check.LlmCheckActivity [--es mode SERVER]`, 로그 `adb logcat -s LlmCheck`)
+
+## 추가 확인 (2026-11-11 밤): Virtual Console HTTP API, 앱 화면 전환
+
+| 항목 | 결과 |
+|---|---|
+| Virtual Console 위치 | 에뮬레이터 안 `ai.pleos.connectwebconsole`이 기기 8088 포트로 웹 콘솔을 띄운다. `adb forward tcp:8088 tcp:8088` 후 http://localhost:8088 |
+| 명령으로 기어 바꾸기 | **된다.** `PUT /vehicle/gear?gear=Drive` (Park·Reverse·Neutral·Drive). 3초 안에 `POST /browser/session?client=<이름>` heartbeat가 없으면 `{"error":"emulator_inactive"}`로 거절한다. 바꿀 수 있는 항목 목록은 `GET /vehicle/catalog` (controls, body, driving-mode 등) |
+| VHAL 직접 주입 | 안 된다. `cmd car_service inject-vhal-event`는 user 빌드라 SecurityException |
+| 앱 화면 전환 (F1) | **된다.** 기어 Park → MenuScreen(`isDriving=false`), Drive → DrivingScreen, 다시 Park → MenuScreen. `DrivingStateSource`(CarUxRestrictionsManager)로 받음 |
+| Compose Preview 기기 렌더링 | **된다.** `androidx.compose.ui.tooling.PreviewActivity`로 화면 4개의 Preview가 모두 그려짐 |
