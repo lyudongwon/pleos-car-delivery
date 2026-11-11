@@ -100,12 +100,13 @@ class SdkCheckActivity : Activity() {
         override fun onRouteStarted(info: RouteStartInfo) { log("[Navi] onRouteStarted = $info"); afterRoute() }
         override fun onRoutingCompleted() { log("[Navi] onRoutingCompleted"); afterRoute() }
         override fun onRouteStateInfo(info: RouteStateInfo) = log("[Navi] onRouteStateInfo = $info")
-        override fun onDestinationInfo(info: DestinationInfo) = log("[Navi] onDestinationInfo = ${info.name} ${info.latitude},${info.longitude} 남은 ${info.remainDistance}m ${info.remainTime}s")
+        override fun onDestinationInfo(info: DestinationInfo) = log("[Navi] onDestinationInfo = ${info.name} ${info.latitude},${info.longitude} 남은 ${info.remainDistance}m ${info.remainTime}s" +
+            if (intent.getStringExtra("test") == "T") " | [T] $tLabel dest ${info.remainDistance}m ${info.remainTime}s" else "")
         override fun onWaypointChanged(info: WaypointChangedInfo) = log("[Navi] onWaypointChanged = ${info.index} ${info.cmdType} ${info.routeStartInfo}")
         override fun onWayPointInfo(list: List<WaypointInfo>) = log("[Navi] onWayPointInfo (${list.size}개) = " + list.joinToString { "${it.name} (${it.latitude},${it.longitude}) 남은 ${it.remainDistance}m ${it.remainTime}s" })
         override fun onWayPointArrived(info: WaypointArrivedInfo) = log("[Navi] onWayPointArrived = ${info.index} ${info.name} ${info.distance}m ${info.duration}s")
         override fun onDestinationArrived(info: DestinationArrivedInfo) = log("[Navi] onDestinationArrived = $info")
-        override fun onTripInfo(info: TripInfo) = log("[Navi] onTripInfo = 거리 ${info.distance}m, eta ${info.eta}, routePoints ${info.summary?.routePoints?.size}개: " +
+        override fun onTripInfo(info: TripInfo) = log("[Navi] onTripInfo = [T] $tLabel trip 거리 ${info.distance}m, eta ${info.eta}, routePoints ${info.summary?.routePoints?.size}개: " +
             (info.summary?.routePoints?.joinToString { "${it.pointType}(${it.latitude},${it.longitude}, ratio ${it.ratioOnRoute})" } ?: "null") +
             ", traffic ${info.summary?.trafficConditions?.size}개")
         override fun onRouteCancelled() = log("[Navi] onRouteCancelled")
@@ -129,6 +130,7 @@ class SdkCheckActivity : Activity() {
         val (lat, lng) = here!!
         val dLat = lat + 0.03; val dLng = lng + 0.03   // 북동쪽 약 4km
         val dest = RouteInfo(dLat, dLng, null, null, "시험 목적지", "", "", "", RouteOption.RECOMMENDED, "", false)
+        if (intent.getStringExtra("test") == "T") { measureCandidates(lat, lng, dest); return }
         if (intent.getStringExtra("test") == "D") {
             // 시험 D: 실제 흐름. 목적지만 잡고 안내가 시작된 뒤, 충분히 기다렸다가 만남 지점을 한 번 추가
             log("[Navi] D) requestRoute → 목적지만")
@@ -155,6 +157,42 @@ class SdkCheckActivity : Activity() {
     }
 
     private fun afterRoute() {}
+
+    /**
+     * 시험 T (0단계 PoC): 후보 지점마다 경유지를 바꿔 넣어 목적지까지 남은 거리·시간이 얼마나 늘어나는지 잰다.
+     * 같은 지점에 requestTrip도 불러, 현재 위치 → 후보 거리·시간을 따로 받는지 본다.
+     * 로그: [T] base / [T] cand=i dest / [T] cand=i trip
+     */
+    private var tLabel = "base"
+    private fun measureCandidates(lat: Double, lng: Double, dest: RouteInfo) {
+        val cands = listOf(0.2 to 0.0, 0.4 to 0.004, 0.5 to -0.004, 0.6 to 0.0, 0.8 to 0.006)
+            .map { (r, off) -> (lat + 0.03 * r + off) to (lng + 0.03 * r - off) }
+        log("[T] requestRoute → 목적지만. 후보 ${cands.size}개: " + cands.joinToString { "(%.5f,%.5f)".format(it.first, it.second) })
+        navi.requestRoute(dest)
+        main.postDelayed({ tLabel = "base"; navi.getDestinationInfo() }, 12_000)
+        if (intent.getStringExtra("mode") == "fresh") {
+            // 후보마다 경로를 새로 요청: 목적지 + 경유지(후보) 하나
+            cands.forEachIndexed { i, (cLat, cLng) ->
+                val t0 = 15_000L + i * 15_000L
+                main.postDelayed({
+                    log("[T] cand=$i requestRouteWithWaypoints ($cLat,$cLng)")
+                    navi.requestRouteWithWaypoints(ai.pleos.playground.navi.data.RouteWithWaypointsRequest(dest,
+                        listOf(RequestWaypointInfo(cLat, cLng, "후보$i", WaypointIndex.FIRST, "", "", "", ""))))
+                }, t0)
+                main.postDelayed({ tLabel = "cand=$i"; navi.getDestinationInfo() }, t0 + 12_000)
+            }
+            return
+        }
+        cands.forEachIndexed { i, (cLat, cLng) ->
+            val t0 = 15_000L + i * 16_000L
+            main.postDelayed({
+                log("[T] cand=$i addWaypoint FIRST ($cLat,$cLng)")
+                navi.addWaypoint(RequestWaypointInfo(cLat, cLng, "후보$i", WaypointIndex.FIRST, "", "", "", ""))
+            }, t0)
+            main.postDelayed({ tLabel = "cand=$i"; navi.getDestinationInfo(); navi.getWaypointInfo() }, t0 + 11_000)
+            main.postDelayed({ tLabel = "cand=$i"; navi.requestTrip(TripRequest(cLat, cLng, "", "후보$i", "")) }, t0 + 13_000)
+        }
+    }
 
     // ---------- 3. TTS (on-device, 등록 없이) ----------
     private fun checkTts() {
