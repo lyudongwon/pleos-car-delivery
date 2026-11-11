@@ -15,6 +15,8 @@ import ai.cardeli.starter.feature.mock.MockData
 import ai.cardeli.starter.feature.sdk.DrivingStateSource
 import ai.cardeli.starter.feature.sdk.Listener
 import ai.cardeli.starter.feature.sdk.LocationSource
+import ai.cardeli.starter.feature.sdk.NaviClient
+import ai.cardeli.starter.feature.geo.LatLng
 import ai.cardeli.starter.feature.route.StoreFinder
 import ai.cardeli.starter.feature.route.PickupSelector
 import ai.cardeli.starter.feature.route.PickupLog
@@ -48,6 +50,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
     private var deliveryJob: Job? = null
     private val speaker = Speaker(app)
     private val listener = Listener(app)
+    private val navi = NaviClient(app)
 
     init {
         viewModelScope.launch {
@@ -97,6 +100,10 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
                 ?: Log.w(TAG, "보낼 수 없는 이벤트: $command")
             is DemoCommand.Rider -> onRider(command)
             is DemoCommand.Say -> viewModelScope.launch { speaker.say(command.text) }
+            DemoCommand.Route -> viewModelScope.launch {
+                val r = navi.startRoute(DemoData.s1Destination, DemoData.S1_DESTINATION_NAME)
+                Log.i(TAG, "내비 안내 시작 ${DemoData.S1_DESTINATION_NAME}: ${r?.let { "${it.distanceM}m ${it.timeSec}초" } ?: "실패"}")
+            }
             is DemoCommand.Utter -> viewModelScope.launch { hear(command.name) }
         }
     }
@@ -137,7 +144,6 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         if (reply.say.isNotEmpty()) speak(reply.say)
         val stage = reply.stage
         if (stage is VoiceOrderFlow.Stage.Ordered) choosePickup(stage.store)
-        // TODO(F8): 고른 지점을 내비 경유지로 넣고 +N분을 다시 잰다
     }
 
     private val pickupSelector = PickupSelector()
@@ -159,6 +165,30 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
         val say = "${c.name}에서 받으세요. " + if (c.waitMin > 0) "도착하면 ${c.waitMin}분쯤 기다려요." else "도착하면 바로 받을 수 있어요."
         _state.update {
             it.copy(pickup = PickupPoint(c.name, detourMin = c.detourMin, detourM = c.detourM, waitMin = c.waitMin), assistantText = say)
+        }
+        speak(say)
+        val loc = candidates.first { it.id == c.id }.location
+        addWaypoint(c.name, loc, c)
+    }
+
+    /** 고른 지점을 내비 경유지로 넣고, 넣기 전후 남은 거리·시간 차이로 +N분을 다시 잰다 (F8) */
+    private suspend fun addWaypoint(name: String, loc: LatLng, planned: PickupSelector.Evaluated) {
+        val before = navi.remain()
+        if (before == null) {
+            Log.w(TAG, "내비 안내 중이 아니라 경유지를 넣지 못함")
+            return
+        }
+        val after = navi.addWaypoint(loc, name)
+        if (after == null) {
+            Log.w(TAG, "경유지 추가 후 경로를 다시 받지 못함")
+            return
+        }
+        val detourM = after.distanceM - before.distanceM
+        val detourMin = ((after.timeSec - before.timeSec) / 60.0).roundToInt()
+        Log.i(TAG, "경유지 추가 $name: ${before.distanceM}m ${before.timeSec}초 → ${after.distanceM}m ${after.timeSec}초 (+${detourM}m +${detourMin}분, 미리 잰 값 +${planned.detourM}m +${planned.detourMin}분)")
+        val say = if (detourMin <= 0) "경로에 넣었어요. 가던 길 그대로예요." else "경로에 넣었어요. 원래보다 ${detourMin}분 더 걸려요."
+        _state.update { s ->
+            s.copy(pickup = s.pickup?.copy(detourMin = detourMin.coerceAtLeast(0), detourM = detourM.coerceAtLeast(0)), assistantText = say)
         }
         speak(say)
     }
@@ -257,6 +287,7 @@ class OrderViewModel(app: Application) : AndroidViewModel(app) {
     override fun onCleared() {
         speaker.release()
         listener.release()
+        navi.release()
         locationSource.release()
         super.onCleared()
     }

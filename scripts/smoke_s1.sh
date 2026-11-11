@@ -18,6 +18,7 @@ demo_gear Drive >/dev/null
 demo_geo 37.4127212 127.094681   # 차 위치를 S1 출발점(내비 고정 위치)으로
 demo_start >/dev/null; "$ADB" shell sleep 4
 demo_reset
+demo_route; "$ADB" shell sleep 15   # 운전자가 서현역을 찍고 출발한 상태
 demo_utter s1_1_order
 wait_for "가게 두 곳 제안" '"suggestions":\["길목김밥","모퉁이김밥"\]'
 demo_utter s1_2_pick
@@ -25,6 +26,7 @@ wait_for "참치김밥+어묵국 9,500원 확인" '"status":"Confirming".*"total
 demo_utter s1_3_yes
 wait_for "주문 완료" '"status":"Ordered"'
 wait_for "수령 지점 안내" '"pickup":{"name":"길목사거리 정차구역","detourMin":0' 30
+wait_for "내비 경유지 추가" '"assistantText":"경로에 넣었어요' 40
 s="$(demo_state)"
 echo "$s" | grep -q '"touchCount":0' && echo "  ok  화면 터치 0회" || { echo "  FAIL 터치 횟수 → $s"; fail=1; }
 echo "$s" | grep -q '"isDriving":true' && echo "  ok  주행 중" || { echo "  FAIL 주행 상태 → $s"; fail=1; }
