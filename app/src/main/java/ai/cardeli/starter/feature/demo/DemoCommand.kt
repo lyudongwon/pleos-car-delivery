@@ -23,6 +23,9 @@ sealed interface DemoCommand {
     /** S1 목적지(서현역)로 내비 안내를 시작한다. 운전자가 목적지를 찍고 출발한 상태를 만든다 (F8) */
     data object Route : DemoCommand
 
+    /** 앱이 내비로 수령 후보(와 가게 들러 포장)의 추가 거리·시간을 직접 잰다. 1~2분 걸린다 (F7 실시간 계산) */
+    data object Measure : DemoCommand
+
     /** 문장을 음성으로 말한다 (F4 확인용) */
     data class Say(val text: String) : DemoCommand
 
@@ -38,6 +41,7 @@ sealed interface DemoCommand {
             "reset" -> Reset
             "dump" -> Dump
             "route" -> Route
+            "measure" -> Measure
             "utter" -> extra("name")?.let { Utter(it) }
             "say" -> extra("text")?.takeIf { it.isNotBlank() }?.let { Say(it) }
             "rider" -> {

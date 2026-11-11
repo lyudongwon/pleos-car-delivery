@@ -3,6 +3,7 @@ package ai.cardeli.starter
 import ai.cardeli.starter.contract.OrderEvent
 import ai.cardeli.starter.contract.OrderStatus
 import ai.cardeli.starter.contract.OrderUiState
+import ai.cardeli.starter.feature.KeepAliveService
 import ai.cardeli.starter.feature.OrderViewModel
 import ai.cardeli.starter.feature.sdk.GleoBridge
 import ai.cardeli.starter.ui.screens.ConfirmScreen
@@ -26,6 +27,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        KeepAliveService.start(this)   // 내비가 앞에 나와도 앱이 얼지 않게
         handleGleo(intent)
         setContent {
             CardeliTheme {

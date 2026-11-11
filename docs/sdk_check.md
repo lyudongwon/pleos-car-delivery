@@ -205,3 +205,11 @@
 | Virtual Console 창문 | `PUT /vehicle/body?window_fl=0~100` (heartbeat 필요). Vehicle SDK 리스너에는 0~10으로 온다 |
 | `removeWaypoint` | 경로 재탐색이 끝난 뒤 부르면 경유지가 빠지고 원래 목적지로 다시 잡힌다(`onWaypointChanged FIRST REMOVE`, 5,100m). 0단계에서 본 "다시 안 잡힘"은 재탐색 중에 불렀기 때문 |
 | STT 쉼표 | "응, 받았어"는 쉼표 쉼에서 끊겨 "응"만 인식됐다. 짧은 대사는 쉼표도 빼고 만든다 |
+
+## F7 앱 안 실시간 계산 · 앱 동결 (2026-11-11 밤)
+
+| 항목 | 결과 |
+|---|---|
+| 앱이 직접 후보별 실측 (`demo_measure`) | **된다.** 앱 본체가 `requestRouteWithWaypoints`로 지점마다 경로를 새로 요청하고 `requestTrip`으로 현재→지점 시간을 받아 6곳을 56초에 쟀다(곳당 약 7초). 거리는 시험 화면으로 미리 잰 값과 모두 같고, 시간은 에뮬레이터 교통 상황에 따라 ±1분 달랐다. 원본 `docs/poc/F7_pickup_measure_live_1111.json` |
+| **앱 동결** | **내비가 앞에 나오면 우리 앱이 백그라운드가 되어 Android 14 프로세스 동결로 얼었다**(`dumpsys activity processes` → `isFrozen=true`). 이때 타이머·위치·창문·음성 처리가 멈추고, adb 명령이 올 때만 잠깐 풀렸다. 스모크가 통과했던 건 상태를 1초마다 묻는 명령이 앱을 깨웠기 때문이다. **포그라운드 서비스(`KeepAliveService`, specialUse)를 띄워 해결** → 내비가 앞에 있어도 `isFrozen=false` |
+| 로그 버퍼 | 에뮬레이터 내비(GpsLocationSource) 경고가 2MB 로그 버퍼를 빠르게 밀어낸다. 긴 확인 전에는 `adb logcat -G 16M` |

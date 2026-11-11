@@ -21,6 +21,11 @@
     <!-- 시험용: LLM SDK (에뮬레이터 v2.1.0 기준 제공 종료 공지됨) -->
     <uses-permission android:name="pleos.car.permission.LLM_SERVICE" />
 
+    <!-- 앱이 뒤로 가도 얼지 않게 하는 포그라운드 서비스 (KeepAliveService) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- AAOS 표준 Car API -->
     <uses-permission android:name="android.car.permission.CAR_SPEED" />
     <uses-permission android:name="android.car.permission.CAR_POWERTRAIN" />
@@ -49,6 +54,16 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!-- 주문 중 내비가 앞에 있어도 앱이 동결되지 않게 붙잡아 둔다 -->
+        <service
+            android:name=".feature.KeepAliveService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="차 안 주문 진행 중 위치·창문·내비 이벤트와 음성 안내 처리" />
+        </service>
 
         <!-- 시연·테스트용 adb 명령 수신기 (F14). 사용법 docs/demo.md -->
         <receiver

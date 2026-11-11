@@ -13,6 +13,8 @@ import ai.pleos.playground.navi.data.RouteInfo
 import ai.pleos.playground.navi.data.RouteStartInfo
 import ai.pleos.playground.navi.data.RouteStateInfo
 import ai.pleos.playground.navi.data.TripInfo
+import ai.pleos.playground.navi.data.TripRequest
+import ai.pleos.playground.navi.data.RouteWithWaypointsRequest
 import ai.pleos.playground.navi.data.WaypointArrivedInfo
 import ai.pleos.playground.navi.data.WaypointChangedInfo
 import ai.pleos.playground.navi.data.WaypointInfo
@@ -44,6 +46,7 @@ class NaviClient(context: Context) {
     private val ready = CompletableDeferred<Boolean>()
     private val destinations = MutableSharedFlow<DestinationInfo>(extraBufferCapacity = 8)
     private val cancelled = MutableSharedFlow<Unit>(extraBufferCapacity = 8)
+    private val trips = MutableSharedFlow<TripInfo>(extraBufferCapacity = 8)
 
     /** 앱이 넣은 경유지 (이름, 좌표) */
     var waypoint: Pair<String, LatLng>? = null
@@ -72,7 +75,9 @@ class NaviClient(context: Context) {
         override fun onRouteStateInfo(info: RouteStateInfo) {}
         override fun onWayPointInfo(list: List<WaypointInfo>) {}
         override fun onDestinationArrived(info: DestinationArrivedInfo) {}
-        override fun onTripInfo(info: TripInfo) {}
+        override fun onTripInfo(info: TripInfo) {
+            trips.tryEmit(info)
+        }
         override fun onReRouteEnded() {}
     }
 
@@ -138,6 +143,28 @@ class NaviClient(context: Context) {
         withTimeoutOrNull(5_000) { awaitAfter(cancelled) { navi.removeWaypoint(WaypointIndex.FIRST) } }
         waypoint = null
         return awaitRoute(20_000)
+    }
+
+    /**
+     * 목적지 + 경유지(지점) 하나로 경로를 새로 요청해 남은 거리·시간을 잰다 (F7 실측).
+     * 0단계에서 확인한 방식: 경유지를 바꿔 끼우면 첫 번째만 재지고, 경로를 새로 요청해야 매번 재진다.
+     */
+    suspend fun measureVia(dest: LatLng, destName: String, point: LatLng, pointName: String): Remain? {
+        if (!isReady()) return null
+        val req = RouteWithWaypointsRequest(
+            RouteInfo(dest.lat, dest.lng, null, null, destName, "", "", "", RouteOption.RECOMMENDED, "", false),
+            listOf(RequestWaypointInfo(point.lat, point.lng, pointName, WaypointIndex.FIRST, "", "", "", "")),
+        )
+        withTimeoutOrNull(5_000) { awaitAfter(cancelled) { navi.requestRouteWithWaypoints(req) } }
+        return awaitRoute(20_000)
+    }
+
+    /** 현재 위치에서 지점까지 걸리는 시간(초). requestTrip */
+    suspend fun tripEtaSec(point: LatLng, name: String): Int? {
+        if (!isReady()) return null
+        return withTimeoutOrNull(5_000) {
+            awaitAfter(trips) { navi.requestTrip(TripRequest(point.lat, point.lng, "", name, "")) }
+        }?.eta?.toInt()
     }
 
     /** 콜백을 놓치지 않게 먼저 구독하고 요청한다 */

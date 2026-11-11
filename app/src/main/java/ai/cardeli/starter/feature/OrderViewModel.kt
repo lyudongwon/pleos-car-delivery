@@ -26,6 +26,7 @@ import ai.cardeli.starter.feature.route.ReceiveDetector
 import ai.cardeli.starter.feature.sdk.WindowWatcher
 import ai.cardeli.starter.feature.sdk.GleoBridge
 import ai.cardeli.starter.feature.mock.DemoStore
+import ai.cardeli.starter.feature.mock.PickupMeasure
 import ai.cardeli.starter.contract.PickupPoint
 import ai.cardeli.starter.contract.DeliveryInfo
 import ai.cardeli.starter.feature.sdk.Speaker
@@ -111,6 +112,7 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
                 ?: Log.w(TAG, "보낼 수 없는 이벤트: $command")
             is DemoCommand.Rider -> onRider(command)
             is DemoCommand.Say -> viewModelScope.launch { speaker.say(command.text) }
+            DemoCommand.Measure -> viewModelScope.launch { measureLive() }
             DemoCommand.Route -> viewModelScope.launch {
                 val r = navi.startRoute(DemoData.s1Destination, DemoData.S1_DESTINATION_NAME)
                 Log.i(TAG, "내비 안내 시작 ${DemoData.S1_DESTINATION_NAME}: ${r?.let { "${it.distanceM}m ${it.timeSec}초" } ?: "실패"}")
@@ -177,6 +179,43 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
 
     private val pickupSelector = PickupSelector()
 
+    /** 앱이 직접 잰 실측값. 있으면 미리 재 둔 값(DemoData.s1Measures) 대신 쓴다 */
+    private var liveMeasures: Map<String, PickupMeasure>? = null
+
+    /**
+     * 내비에 지점마다 경로를 새로 요청해 추가 거리·시간을 재고, 현재 위치→지점 시간도 잰다 (F7 실시간 계산).
+     * 지점당 약 15초. 끝나면 목적지만으로 안내를 되돌린다. 결과는 files/pickup_measure_live.json
+     */
+    private suspend fun measureLive() {
+        val dest = DemoData.s1Destination
+        val name = DemoData.S1_DESTINATION_NAME
+        val base = navi.startRoute(dest, name) ?: run { Log.w(TAG, "실측: 기준 경로를 못 받음"); return }
+        val store = DemoData.s1Stores.first()
+        val points = listOf("store-${store.id}" to store.location) + DemoData.s1Pickups.map { it.id to it.location }
+        val result = linkedMapOf<String, PickupMeasure>()
+        for ((id, loc) in points) {
+            val via = navi.measureVia(dest, name, loc, id)
+            val eta = navi.tripEtaSec(loc, id)
+            if (via == null || eta == null) {
+                Log.w(TAG, "실측 실패 $id via=$via eta=$eta")
+                continue
+            }
+            result[id] = PickupMeasure(
+                detourM = (via.distanceM - base.distanceM).coerceAtLeast(0),
+                detourSec = (via.timeSec - base.timeSec).coerceAtLeast(0),
+                etaSec = eta,
+            )
+            Log.i(TAG, "실측 $id: 기준 ${base.distanceM}m ${base.timeSec}초 → ${via.distanceM}m ${via.timeSec}초, 현재→지점 ${eta}초 (미리 잰 값 ${DemoData.s1Measures[id]})")
+        }
+        navi.startRoute(dest, name)
+        liveMeasures = result
+        val json = result.entries.joinToString(",", "{\"baseM\":${base.distanceM},\"baseSec\":${base.timeSec},\"points\":{", "}}") { (id, m) ->
+            "\"$id\":{\"detourM\":${m.detourM},\"detourSec\":${m.detourSec},\"etaSec\":${m.etaSec}}"
+        }
+        File(getApplication<Application>().filesDir, "pickup_measure_live.json").writeText(json)
+        Log.i(TAG, "실측 끝 ${result.size}/${points.size}곳")
+    }
+
     /** 차종은 차에서 한 번 읽어 둔다 */
     private val carModel: String by lazy { VehicleInfo.carModel(app) ?: "차종 미확인" }
 
@@ -192,7 +231,9 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
     /** 수령 지점을 고르고(F7), 계산 로그를 남기고, 안내한다 */
     private suspend fun choosePickup(store: DemoStore) {
         val candidates = DemoData.s1Pickups.takeIf { store.id == "s1-a" }.orEmpty()   // 후보 실측은 길목김밥 근처만 있다
-        val sel = pickupSelector.choose(store, candidates, DemoData.s1Measures)
+        val measures = liveMeasures ?: DemoData.s1Measures
+        Log.i(TAG, "수령 지점 계산에 쓰는 값: ${if (liveMeasures != null) "앱 실측" else "미리 잰 값"}")
+        val sel = pickupSelector.choose(store, candidates, measures)
         if (sel == null) {
             Log.w(TAG, "${store.name} 근처 수령 후보 실측값이 없음")
             val say = "${store.name} 앞에서 받을게요."

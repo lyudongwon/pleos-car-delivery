@@ -7,6 +7,8 @@ RECV="$PKG/.feature.demo.DemoReceiver"
 
 demo_cmd()   { "$ADB" shell am broadcast -n "$RECV" "$@" >/dev/null; }
 demo_reset() { demo_cmd --es cmd reset; }
+demo_measure() { demo_cmd --es cmd measure; }   # 앱이 내비로 수령 후보 추가 시간을 직접 잰다(1~2분)
+demo_measure_log() { "$ADB" shell run-as "$PKG" --user "$DEMO_USER" cat files/pickup_measure_live.json; echo; }
 demo_route() { demo_cmd --es cmd route; }   # S1 목적지(서현역)로 내비 안내 시작
 demo_event() { if [ -n "$2" ]; then demo_cmd --es cmd event --es name "$1" --es id "$2"; else demo_cmd --es cmd event --es name "$1"; fi; }
 demo_say()   { demo_cmd --es cmd say --es text "'$1'"; }   # 공백 있는 문장은 adb shell에서 한 덩어리로 넘어가게 작은따옴표로 감싼다

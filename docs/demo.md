@@ -15,6 +15,7 @@ source scripts/demo.sh
 |---|---|
 | `demo_start` | 앱을 새로 띄운다 |
 | `demo_route` | 내비에 S1 목적지(서현역) 안내를 시작한다. 운전자가 목적지를 찍고 출발한 상태 |
+| `demo_measure` | 앱이 내비로 수령 후보 5곳·포장의 추가 거리·시간을 직접 잰다(약 1분). 이후 주문은 이 값으로 고른다. 결과는 `demo_measure_log` |
 | `demo_pickup_log` | F7 수령 지점 계산 로그(JSON)를 출력한다 |
 | `demo_reset` | 주문 상태를 처음으로 되돌린다 (주행 여부는 차량 상태를 따름) |
 | `demo_state` | 현재 state를 JSON으로 저장하고 출력한다 |
