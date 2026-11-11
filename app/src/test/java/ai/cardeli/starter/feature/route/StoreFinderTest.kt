@@ -11,8 +11,8 @@ class StoreFinderTest {
 
     private val finder = StoreFinder(DemoRoute.points, DemoData.s1Stores)
 
-    /** 경로 위, 길목김밥을 지나고 모퉁이김밥 전 (출발점에서 약 2.5km) */
-    private val pastA = LatLng(37.395996, 127.106793)
+    /** 경로 위, 길목김밥을 지나고 모퉁이김밥 전 (남쪽 정차구역, 출발점에서 약 15.5km) */
+    private val pastA = LatLng(37.289623, 127.109114)
 
     @Test
     fun `출발점에서는 앞쪽 경로 근처 두 곳을 지나가는 순서로`() {
@@ -25,7 +25,7 @@ class StoreFinderTest {
     fun `지나친 가게와 경로에서 먼 가게는 빠진다`() {
         val names = finder.find(DemoData.s1Start, null, limit = 10).map { it.store.name }
         assertTrue("시흥김밥(지나친 방향) $names", "시흥김밥" !in names)
-        assertTrue("먼길김밥(1km 떨어짐) $names", "먼길김밥" !in names)
+        assertTrue("먼길김밥(3.4km 떨어짐) $names", "먼길김밥" !in names)
     }
 
     @Test

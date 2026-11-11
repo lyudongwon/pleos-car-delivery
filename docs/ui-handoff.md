@@ -43,7 +43,7 @@ val driving = browsing.copy(
     isDriving = true,
     voiceState = VoiceState.Speaking,
     assistantText = "지나가는 길에 길목김밥, 모퉁이김밥이 있어요.",
-    suggestions = listOf(StoreSuggestion("길목김밥", 1900), StoreSuggestion("모퉁이김밥", 3500)),
+    suggestions = listOf(StoreSuggestion("길목김밥", 14900), StoreSuggestion("모퉁이김밥", 16700)),
     pickup = PickupPoint("길목 공영주차장", detourMin = 2, detourM = 1400, waitMin = 5),
 )
 ```

@@ -20,7 +20,7 @@ sealed interface DemoCommand {
     /** 녹음해 둔 대사 파일(assets/voice/<name>.pcm)을 음성 인식에 넣는다 (F2) */
     data class Utter(val name: String) : DemoCommand
 
-    /** S1 목적지(서현역)로 내비 안내를 시작한다. 운전자가 목적지를 찍고 출발한 상태를 만든다 (F8) */
+    /** S1 목적지(기흥역)로 내비 안내를 시작한다. 운전자가 목적지를 찍고 출발한 상태를 만든다 (F8) */
     data object Route : DemoCommand
 
     /** 앱이 내비로 수령 후보(와 가게 들러 포장)의 추가 거리·시간을 직접 잰다. 1~2분 걸린다 (F7 실시간 계산) */

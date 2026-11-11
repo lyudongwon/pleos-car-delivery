@@ -1,0 +1,17 @@
+{
+  "measuredAt": "2026-11-12T02:50+09:00",
+  "method": "Pleos Connect 에뮬레이터 v2.1.0 NaviHelper. 출발: 내비 고정 위치(37.4127212,127.094681). 목적지만 경로 요청 후, 지점마다 requestRouteWithWaypoints(목적지, [지점])로 경로를 새로 요청해 getDestinationInfo 남은 거리·시간을 읽음. 현재→지점은 requestTrip. 내비 값은 1km·60초 단위 반올림. 앱 실측 명령: demo_measure (files/pickup_measure_live.json)",
+  "why": "11/11 서현역 경로(12분)는 가게가 경로에서 60~74m라 배달로 보기에 너무 가깝고, 가게를 떨어뜨리면 차가 음식보다 먼저 수령 지점에 도착했다. 경로를 23분으로 늘리고 가게를 경로에서 1km 넘게 떨어뜨렸다",
+  "destination": {"name": "기흥역", "lat": 37.274701, "lng": 127.11587},
+  "base": {"remainM": 17000, "remainSec": 1380},
+  "store": {"id": "s1-a", "name": "길목김밥", "lat": 37.302420, "lng": 127.115447, "routeOffsetM": 1059, "cookMin": 10},
+  "points": [
+    {"id": "store-s1-a", "name": "길목김밥 (가게 들러 포장)", "withM": 18000, "withSec": 1740, "detourM": 1000, "detourSec": 360, "tripEtaSec": 1050},
+    {"id": "p0", "name": "길목 공영주차장", "withM": 17000, "withSec": 1440, "detourM": 0, "detourSec": 60, "tripEtaSec": 1021, "storeDistM": 1018},
+    {"id": "p1", "name": "길목사거리 정차구역", "withM": 17000, "withSec": 1380, "detourM": 0, "detourSec": 0, "tripEtaSec": 1054, "storeDistM": 1117},
+    {"id": "p2", "name": "북쪽 상가 주차장", "withM": 17000, "withSec": 1500, "detourM": 0, "detourSec": 120, "tripEtaSec": 1101, "storeDistM": 782},
+    {"id": "p3", "name": "건너편 공원 주차장", "withM": 17000, "withSec": 1380, "detourM": 0, "detourSec": 0, "tripEtaSec": 1137, "storeDistM": 1779},
+    {"id": "p4", "name": "남쪽 정차구역", "withM": 17000, "withSec": 1380, "detourM": 0, "detourSec": 0, "tripEtaSec": 1087, "storeDistM": 1529}
+  ],
+  "probes": "목적지 후보 확인: 광교중앙역은 내비가 판교에서 고속도로를 타서(19km·22분) OSRM 경로 6km~목적지 2.5분 전 구간이 모두 +3분 → 버림. 기흥역은 OSRM 15.0~16.5분 구간이 내비 경로와 겹침(+0) → 수령 후보를 이 구간에 둠. 경로 옵션 FREE·SHORT_DISTANCE는 에뮬레이터 내비에서 결과가 같았다(옵션 무시)"
+}

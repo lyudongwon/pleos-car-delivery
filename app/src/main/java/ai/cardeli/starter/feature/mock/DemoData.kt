@@ -42,41 +42,42 @@ object DemoData {
 
     /** 출발 위치 = 에뮬레이터 내비 고정 위치. FusedLocation도 `adb emu geo fix 127.094681 37.4127212`로 맞춘다 */
     val s1Start = LatLng(37.4127212, 127.094681)
-    val s1Destination = LatLng(37.384553, 127.123706)
-    const val S1_DESTINATION_NAME = "서현역"
+    val s1Destination = LatLng(37.274701, 127.11587)
+    const val S1_DESTINATION_NAME = "기흥역"
 
     /**
-     * S1 가게 4곳. 경로 근처 앞쪽인 A·B만 추천돼야 한다.
-     * C는 출발점 뒤쪽(이미 지나친 방향), D는 경로에서 약 1km 떨어져 있어 걸러진다.
+     * S1 가게 4곳. 배달 가능 거리(경로에서 2km) 안 앞쪽인 A·B만 추천돼야 한다.
+     * A는 수령 지점(경로 14.7km, 출발 약 17분 뒤)에서 1.1km·경로에서 1.1km, B는 경로에서 1km 떨어져 있다. 실제 배달처럼 가게가 경로 바로 옆이 아니다.
+     * C는 출발점 뒤쪽(이미 지나친 방향), D는 경로에서 약 3.5km 떨어져 있어 걸러진다.
      */
     val s1Stores = listOf(
-        DemoStore("s1-a", "길목김밥", LatLng(37.400661, 127.106877), cookMin = 10, menus = menusOf("길목김밥", "a")),
-        DemoStore("s1-b", "모퉁이김밥", LatLng(37.392223, 127.114064), cookMin = 12, menus = menusOf("모퉁이김밥", "b")),
+        DemoStore("s1-a", "길목김밥", LatLng(37.302420, 127.115447), cookMin = 10, menus = menusOf("길목김밥", "a")),
+        DemoStore("s1-b", "모퉁이김밥", LatLng(37.280771, 127.127205), cookMin = 12, menus = menusOf("모퉁이김밥", "b")),
         DemoStore("s1-c", "시흥김밥", LatLng(37.415864, 127.091854), cookMin = 8, menus = menusOf("시흥김밥", "c")),
-        DemoStore("s1-d", "먼길김밥", LatLng(37.382647, 127.110909), cookMin = 10, menus = menusOf("먼길김밥", "d")),
+        DemoStore("s1-d", "먼길김밥", LatLng(37.346167, 127.141255), cookMin = 10, menus = menusOf("먼길김밥", "d")),
     )
 
-    /** 길목김밥(s1-a) 근처 수령 후보 5곳. 추가 시간은 F7에서 내비 실측으로 채운다 */
+    /** 길목김밥(s1-a)에서 기사가 경로까지 가져올 수령 후보 5곳(가게에서 0.8~1.8km). 정차구역 두 곳은 내비 경로 위(실측 추가 0), 주차장 세 곳은 경로에서 100~300m. 추가 시간은 F7에서 내비 실측으로 채운다 */
     val s1Pickups = listOf(
-        PickupCandidate("p0", "길목 공영주차장", LatLng(37.402198, 127.105473), PickupType.PublicParking),
-        PickupCandidate("p1", "길목사거리 정차구역", LatLng(37.398806, 127.106622), PickupType.StopZone),
-        PickupCandidate("p2", "동쪽 상가 주차장", LatLng(37.400661, 127.110269), PickupType.PublicParking),
-        PickupCandidate("p3", "서쪽 공원 주차장", LatLng(37.400212, 127.103937), PickupType.PublicParking),
-        PickupCandidate("p4", "남쪽 정차구역", LatLng(37.397882, 127.106944), PickupType.StopZone),
+        PickupCandidate("p0", "길목 공영주차장", LatLng(37.297803, 127.105515), PickupType.PublicParking),
+        PickupCandidate("p1", "길목사거리 정차구역", LatLng(37.294920, 127.107047), PickupType.StopZone),
+        PickupCandidate("p2", "북쪽 상가 주차장", LatLng(37.297170, 127.109567), PickupType.PublicParking),
+        PickupCandidate("p3", "건너편 공원 주차장", LatLng(37.287535, 127.108067), PickupType.PublicParking),
+        PickupCandidate("p4", "남쪽 정차구역", LatLng(37.289623, 127.109114), PickupType.StopZone),
     )
 
     /**
-     * 내비 실측값 (11/11, docs/poc/F7_pickup_measure_1111.json). S1 출발점 → 서현역 경로 기준.
+     * 내비 실측값 (11/12, docs/poc/F7_pickup_measure_1112.json). S1 출발점 → 기흥역 경로 기준(내비 17km · 23분).
      * detour = (지점을 경유지로 넣은 경로) − (목적지만), eta = 현재 위치 → 지점(requestTrip).
-     * 내비 값은 100m·60초 단위로 반올림돼 있다. 출발점이 아닌 곳에서는 맞지 않는다.
+     * 내비 값은 1km·60초 단위로 반올림돼 있다. 출발점이 아닌 곳에서는 맞지 않는다.
      */
     val s1Measures = mapOf(
-        "store-s1-a" to PickupMeasure(detourM = 600, detourSec = 120, etaSec = 406),
-        "p0" to PickupMeasure(detourM = 600, detourSec = 120, etaSec = 437),
-        "p1" to PickupMeasure(detourM = 0, detourSec = 0, etaSec = 416),
-        "p2" to PickupMeasure(detourM = 500, detourSec = 300, etaSec = 509),
-        "p3" to PickupMeasure(detourM = 800, detourSec = 180, etaSec = 443),
-        "p4" to PickupMeasure(detourM = 0, detourSec = 0, etaSec = 426),
+        "store-s1-a" to PickupMeasure(detourM = 1_000, detourSec = 360, etaSec = 1_050),
+        "p0" to PickupMeasure(detourM = 0, detourSec = 60, etaSec = 1_021),
+        "p1" to PickupMeasure(detourM = 0, detourSec = 0, etaSec = 1_054),
+        "p2" to PickupMeasure(detourM = 0, detourSec = 120, etaSec = 1_101),
+        "p3" to PickupMeasure(detourM = 0, detourSec = 0, etaSec = 1_137),
+        "p4" to PickupMeasure(detourM = 0, detourSec = 0, etaSec = 1_087),
     )
 
     // ---------- S2: 정차 중 주문 (학원 주차장) ----------

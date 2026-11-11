@@ -11,7 +11,7 @@ demo_gear Drive >/dev/null
 demo_geo 37.4127212 127.094681   # 차 위치를 S1 출발점(내비 고정 위치)으로
 demo_start >/dev/null; "$ADB" shell sleep 4
 demo_reset
-"$ADB" logcat -c; demo_route   # 운전자가 서현역을 찍고 출발한 상태
+"$ADB" logcat -c; demo_route   # 운전자가 기흥역을 찍고 출발한 상태
 route_started || { echo "  FAIL 내비 안내 시작"; SMOKE_FAIL=1; }
 [ "${NO_KEEPALIVE:-0}" = "1" ] && demo_keepalive false   # 동결 감지 검증용: 포그라운드 서비스를 끄고 돌린다
 
@@ -22,7 +22,7 @@ step "참치김밥+어묵국 9,500원 확인" '"status":"Confirming".*"totalPric
 demo_utter s1_3_yes
 step "주문 완료·수령 지점 안내" '"status":"Ordered".*"pickup":{"name":"길목사거리 정차구역","detourMin":0' 20
 step "내비 경유지 추가" '"assistantText":"경로에 넣었어요' 25
-demo_geo 37.3995 127.1064   # 수령 지점(길목사거리 정차구역) 약 80m 앞으로 차를 옮긴다
+demo_geo 37.295221 127.106226   # 수령 지점(길목사거리 정차구역) 약 80m 앞으로 차를 옮긴다
 step "수령 지점 도착 감지" '"assistantText":"길목사거리 정차구역에 도착했어요.*"atPickup":true' 15
 demo_window 100; "$ADB" shell sleep 2; demo_window 0   # 창문을 열고 음식을 받은 뒤 닫는다
 step "창문 열림→닫힘: 받았는지 물음" '"assistantText":"음식 받으셨나요?"' 12

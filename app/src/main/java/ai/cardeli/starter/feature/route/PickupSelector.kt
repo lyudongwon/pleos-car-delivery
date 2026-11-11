@@ -73,6 +73,6 @@ object PickupLog {
         return "{\"store\":\"${store.name}\",\"cookMin\":${store.cookMin},\"chosen\":\"${s.chosen.id}\"," +
             "\"candidates\":[${s.candidates.joinToString(",") { e(it) }}]," +
             "\"takeout\":${s.takeout?.let { e(it) } ?: "null"}," +
-            "\"source\":\"docs/poc/F7_pickup_measure_1111.json\"}"
+            "\"source\":\"docs/poc/F7_pickup_measure_1112.json\"}"
     }
 }

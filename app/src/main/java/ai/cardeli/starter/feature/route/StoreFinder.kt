@@ -13,7 +13,7 @@ import ai.cardeli.starter.feature.mock.DemoStore
 class StoreFinder(
     private val route: List<LatLng>,
     private val stores: List<DemoStore>,
-    private val maxOffsetM: Double = 500.0,
+    private val maxOffsetM: Double = 2_000.0,   // 배달 가능 거리: 기사가 가게에서 경로 위 지점까지 가져온다
     private val minAheadM: Double = 100.0,
 ) {
     private val cum = Geo.cumulativeM(route)

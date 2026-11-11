@@ -262,7 +262,9 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
     private suspend fun onArrivedAtPickup(name: String) {
         if (_state.value.atPickup) return
         Log.i(TAG, "수령 지점 도착 $name")
-        val say = "${name}에 도착했어요. 기사님이 오고 있어요."
+        // 계산상 음식이 먼저 와 있으면(대기 0분) 기다리고 있다고, 아니면 오고 있다고 말한다
+        val rider = if ((_state.value.pickup?.waitMin ?: 1) == 0) "기사님이 기다리고 있어요." else "기사님이 오고 있어요."
+        val say = "${name}에 도착했어요. $rider"
         _state.update { it.copy(atPickup = true, assistantText = say) }
         receiveDetector.arm()
         speak(say)
