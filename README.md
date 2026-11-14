@@ -4,6 +4,9 @@
 
 달리는 중엔 음성으로 주문해 가는 길 위에서, 서 있을 때는 차가 있는 그 자리에서, 차에서 내리지 않고 음식을 받는 차량용 배달 앱입니다.
 
+![홈 화면](./readme-preview/main_menu.png)
+![주문 화면](./readme-preview/purchase_select_window.png)
+
 | 제출물 | 위치 |
 |---|---|
 | APK (release) | `apk/[팀명]_밥먹GO_release.apk` |
