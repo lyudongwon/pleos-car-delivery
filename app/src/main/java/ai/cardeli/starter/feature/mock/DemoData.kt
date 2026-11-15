@@ -13,6 +13,8 @@ data class DemoStore(
     val location: LatLng,
     val cookMin: Int,          // 주문부터 음식이 나오기까지(분)
     val menus: List<Menu>,
+    val category: String = "김밥",
+    val deliveryFee: Int = 2_300,
 )
 
 enum class PickupType { PublicParking, StopZone }
@@ -57,6 +59,9 @@ object DemoData {
         DemoStore("s1-d", "먼길김밥", LatLng(37.346167, 127.141255), cookMin = 10, menus = menusOf("먼길김밥", "d")),
     )
 
+    /** 지난번에 주문한 가게. 앱은 경로 근처 가게 중 이 가게를 먼저 제안한다(기획안 5-1). 주문 이력 저장은 만들지 않는다 */
+    const val S1_LAST_ORDERED_STORE_ID = "s1-a"
+
     /** 길목김밥(s1-a)에서 기사가 경로까지 가져올 수령 후보 5곳(가게에서 0.8~1.8km). 정차구역 두 곳은 내비 경로 위(실측 추가 0), 주차장 세 곳은 경로에서 100~300m. 추가 시간은 F7에서 내비 실측으로 채운다 */
     val s1Pickups = listOf(
         PickupCandidate("p0", "길목 공영주차장", LatLng(37.297803, 127.105515), PickupType.PublicParking),
@@ -87,6 +92,23 @@ object DemoData {
     const val S2_PARKING_NAME = "서현 학원가 주차장"
 
     val s2Store = DemoStore("s2-a", "서현김밥", LatLng(37.3851, 127.1256), cookMin = 10, menus = menusOf("서현김밥", "s2"))
+
+    /** 정차 중 가게 목록. 거리·예상 시간은 앱이 지금 차 위치로 계산한다. 이름은 모두 가상 */
+    val s2Stores = listOf(
+        s2Store,
+        DemoStore("s2-b", "바삭치킨", LatLng(37.3880, 127.1290), cookMin = 18, category = "치킨", deliveryFee = 3_000, menus = listOf(
+            Menu("s2b-1", "바삭치킨", "후라이드치킨", 19_000), Menu("s2b-2", "바삭치킨", "양념치킨", 20_000), Menu("s2b-3", "바삭치킨", "치킨너겟", 6_000),
+        )),
+        DemoStore("s2-c", "모퉁이카페", LatLng(37.3842, 127.1268), cookMin = 5, category = "카페", deliveryFee = 2_000, menus = listOf(
+            Menu("s2c-1", "모퉁이카페", "아메리카노", 3_000), Menu("s2c-2", "모퉁이카페", "카페라테", 3_800), Menu("s2c-3", "모퉁이카페", "샌드위치", 5_500),
+        )),
+        DemoStore("s2-d", "한그릇국밥", LatLng(37.3905, 127.1330), cookMin = 12, category = "한식", deliveryFee = 2_500, menus = listOf(
+            Menu("s2d-1", "한그릇국밥", "돼지국밥", 9_000), Menu("s2d-2", "한그릇국밥", "순대국밥", 9_000), Menu("s2d-3", "한그릇국밥", "김치찌개", 8_500),
+        )),
+        DemoStore("s2-e", "언덕피자", LatLng(37.3990, 127.1420), cookMin = 20, category = "피자", deliveryFee = 3_000, menus = listOf(
+            Menu("s2e-1", "언덕피자", "페퍼로니피자", 18_000), Menu("s2e-2", "언덕피자", "고구마피자", 21_000),
+        )),
+    )
 
     /** 처음 한 번 등록해 둔 상태로 시작한다 (getCRNInfo는 "invalid"라 못 씀) */
     val vehicle = DemoVehicle(plate = "12가 3456", color = "흰색")

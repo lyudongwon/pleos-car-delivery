@@ -5,16 +5,18 @@ import ai.cardeli.starter.feature.mock.DemoStore
 
 /**
  * 주행 중 음성 주문 대화 흐름 (F5).
- * 대기 → 가게 제안 → (메뉴) → 주문 확인 → 주문 완료. 결제는 가상이라 확인하면 바로 주문 완료다.
+ * 대기 → 가게 제안(지난번 주문한 가게 하나) → 메뉴 → 주문 확인 → 주문 완료. 결제는 가상이라 확인하면 바로 주문 완료다.
  *
  * 화면이나 SDK를 모르는 순수 로직이다. 문장을 받아 다음 단계와 앱이 할 말을 돌려준다.
  * 가게 고르기(F6)는 [findStores]로 받는다.
  */
-class VoiceOrderFlow(private val findStores: (category: String?) -> List<DemoStore>) {
+class VoiceOrderFlow(
+    private val lastOrderedStoreId: String? = null,
+    private val findStores: (category: String?) -> List<DemoStore>,
+) {
 
     sealed interface Stage {
         data object Idle : Stage
-        data class ChoosingStore(val stores: List<DemoStore>) : Stage
         data class ChoosingMenu(val store: DemoStore) : Stage
         data class Confirming(val store: DemoStore, val cart: List<CartItem>) : Stage
         data class Ordered(val store: DemoStore, val cart: List<CartItem>) : Stage
@@ -37,8 +39,7 @@ class VoiceOrderFlow(private val findStores: (category: String?) -> List<DemoSto
         }
         val next = when (val s = stage) {
             Stage.Idle -> start(p)
-            is Stage.ChoosingStore -> chooseStore(s, p)
-            is Stage.ChoosingMenu -> chooseMenu(s.store, p)
+            is Stage.ChoosingMenu -> chooseMenu(s.store, p) ?: askMenu(s.store, p)
             is Stage.Confirming -> confirm(s, p)
             is Stage.Ordered -> null   // 주문 뒤의 말은 무시한다
         }
@@ -69,26 +70,30 @@ class VoiceOrderFlow(private val findStores: (category: String?) -> List<DemoSto
         return Reply(r.stage, "${store.name}에서 ${r.say}")
     }
 
+    /** 경로 근처 가게 중 지난번에 주문한 가게를 먼저, 없으면 가장 먼저 지나가는 가게 하나를 제안한다 (기획안 5-1) */
     private fun start(p: ParsedUtterance): Reply? {
         if (!p.wantsOrder) return null
-        val stores = findStores(p.category).take(2)
+        val stores = findStores(p.category)
         if (stores.isEmpty()) return Reply(Stage.Idle, "가는 길에는 받을 수 있는 가게가 없어요.")
-        val names = stores.joinToString(", ") { it.name }
-        return go(Stage.ChoosingStore(stores), "지나가는 길에 $names${Korean.iGa(stores.last().name)} 있어요.")
+        val last = stores.firstOrNull { it.id == lastOrderedStoreId }
+        val store = last ?: stores.first()
+        val say = if (last != null) {
+            "가는 길에 배달받을 수 있는 가게가 있습니다. 지난번에 드신 ${store.name} 어떠세요?"
+        } else {
+            "가는 길에 배달받을 수 있는 ${store.name}${Korean.iGa(store.name)} 있습니다. 어떠세요?"
+        }
+        return go(Stage.ChoosingMenu(store), say)
     }
 
-    private fun chooseStore(s: Stage.ChoosingStore, p: ParsedUtterance): Reply? {
-        val store = p.storeName?.let { n -> s.stores.firstOrNull { it.name == n } }
-            ?: p.storeIndex?.let { s.stores.getOrNull(it) }
-            ?: return null
-        return if (p.items.isEmpty()) go(Stage.ChoosingMenu(store), "${store.name}에서 무엇을 드릴까요?") else chooseMenu(store, p)
-    }
+    /** 가게는 좋다고 했는데 메뉴를 말하지 않았을 때 */
+    private fun askMenu(store: DemoStore, p: ParsedUtterance): Reply? =
+        if (p.confirm) go(Stage.ChoosingMenu(store), "${store.name}에서 무엇을 드릴까요?") else null
 
     private fun chooseMenu(store: DemoStore, p: ParsedUtterance): Reply? {
         val cart = p.items.mapNotNull { item -> store.menus.firstOrNull { it.name == item.menuName }?.let { CartItem(it, item.quantity) } }
         if (cart.isEmpty()) return null
         val list = cart.joinToString(", ") { "${it.menu.name} ${Korean.count(it.quantity)}" }
-        return go(Stage.Confirming(store, cart), "$list, ${Korean.won(cart.sumOf { it.totalPrice })}이에요. 주문할까요?")
+        return go(Stage.Confirming(store, cart), "$list, ${Korean.won(cart.sumOf { it.totalPrice })}입니다. 주문할까요?")
     }
 
     private fun confirm(s: Stage.Confirming, p: ParsedUtterance): Reply? {

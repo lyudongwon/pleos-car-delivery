@@ -59,7 +59,9 @@ class DemoCommandTest {
         val m = Menu("s2-2", "서현김밥", "참치김밥", 5_500)
         val json = DemoSnapshot.toJson(OrderUiState(menus = listOf(m), cart = listOf(CartItem(m, 2)), status = OrderStatus.RiderComing, riderDistanceM = 200))
         assertEquals(
-            "{\"isDriving\":false,\"status\":\"RiderComing\",\"store\":\"서현김밥\",\"cart\":[{\"id\":\"s2-2\",\"name\":\"참치김밥\",\"qty\":2}],\"totalPrice\":11000,\"riderDistanceM\":200," +
+            "{\"isDriving\":false,\"isParked\":false,\"stores\":[],\"charging\":null," +
+                "\"options\":{\"method\":\"ToCar\",\"window\":\"Driver\",\"locateBy\":\"CarInfo\",\"payment\":\"Card\"},\"deliveryFee\":0,\"payTotal\":11000,\"etaMin\":null," +
+                "\"status\":\"RiderComing\",\"store\":\"서현김밥\",\"cart\":[{\"id\":\"s2-2\",\"name\":\"참치김밥\",\"qty\":2}],\"totalPrice\":11000,\"riderDistanceM\":200," +
                 "\"voiceState\":\"Idle\",\"transcript\":\"\",\"assistantText\":\"\",\"suggestions\":[],\"pickup\":null,\"touchCount\":0,\"atPickup\":false,\"delivery\":null}",
             json,
         )

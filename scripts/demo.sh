@@ -35,4 +35,17 @@ demo_window() {
   curl -s -X POST "http://localhost:8088/browser/session?client=demo" >/dev/null
   curl -s -X PUT "http://localhost:8088/vehicle/body?window_fl=$1" >/dev/null
 }
+# Virtual Console: 충전구 열기·닫기(true/false), 배터리 잔량(%) (F16)
+demo_charge_port() {
+  "$ADB" forward tcp:8088 tcp:8088 >/dev/null
+  curl -s -X POST "http://localhost:8088/browser/session?client=demo" >/dev/null
+  curl -s -X PUT "http://localhost:8088/vehicle/ev-battery?field=charge_port_open&value=$1" >/dev/null
+}
+demo_soc() {
+  "$ADB" forward tcp:8088 tcp:8088 >/dev/null
+  curl -s -X POST "http://localhost:8088/browser/session?client=demo" >/dev/null
+  curl -s -X PUT "http://localhost:8088/vehicle/ev-battery?field=soc&value=$1" >/dev/null
+}
+# 주문 진행 단계 넘기기 (예: demo_progress Cooking)
+demo_progress() { demo_cmd --es cmd progress --es status "$1"; }
 demo_start() { "$ADB" shell am force-stop "$PKG"; "$ADB" shell am start -W -n "$PKG/.MainActivity" | grep -E "Status"; }

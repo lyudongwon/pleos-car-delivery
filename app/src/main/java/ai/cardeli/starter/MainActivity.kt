@@ -68,6 +68,8 @@ private fun AppScreen(state: OrderUiState, onEvent: (OrderEvent) -> Unit) {
         OrderStatus.Browsing -> MenuScreen(state, onEvent)
         OrderStatus.Confirming -> ConfirmScreen(state, onEvent)
         OrderStatus.Ordered,
+        OrderStatus.Cooking,
+        OrderStatus.Delivering,
         OrderStatus.RiderComing,
         OrderStatus.Arrived,
         OrderStatus.Received -> DeliveryScreen(state, onEvent)

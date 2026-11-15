@@ -16,6 +16,7 @@ data class ParsedUtterance(
     val items: List<ParsedItem>,
     val confirm: Boolean,         // 응, 네, 그래, 주문해
     val cancel: Boolean,          // 아니, 취소, 그만
+    val received: Boolean = false,   // 받았어, 받았어요 (수령 완료)
 )
 
 class OrderParser(
@@ -48,6 +49,7 @@ class OrderParser(
             items = items,
             confirm = CONFIRM_WORDS.any { s.startsWith(it) } || "주문해" in s && !s.endsWith("줘"),
             cancel = CANCEL_WORDS.any { it in s },
+            received = "받았" in s,
         )
     }
 

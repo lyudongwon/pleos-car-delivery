@@ -9,18 +9,18 @@ class VoiceOrderFlowTest {
 
     private val stores = DemoData.s1Stores.take(2)   // 길목김밥, 모퉁이김밥
     private val parser = OrderParser(stores.first().menus.map { it.name }, stores.map { it.name })
-    private fun flow() = VoiceOrderFlow { stores }
+    private fun flow() = VoiceOrderFlow(DemoData.S1_LAST_ORDERED_STORE_ID) { stores }
     private fun VoiceOrderFlow.hear(t: String) = onHeard(parser.parse(t))
 
     @Test
     fun `시연 대화가 터치 없이 주문 완료까지 간다`() {
         val f = flow()
         val r1 = f.hear("가는 길에 받을 수 있는 김밥 시켜줘")
-        assertEquals("지나가는 길에 길목김밥, 모퉁이김밥이 있어요.", r1.say)
-        assertTrue(r1.stage is VoiceOrderFlow.Stage.ChoosingStore)
+        assertEquals("가는 길에 배달받을 수 있는 가게가 있습니다. 지난번에 드신 길목김밥 어떠세요?", r1.say)
+        assertTrue(r1.stage is VoiceOrderFlow.Stage.ChoosingMenu)
 
-        val r2 = f.hear("첫 번째 참치김밥 하나랑 어묵국 하나")
-        assertEquals("참치김밥 하나, 어묵국 하나, 9,500원이에요. 주문할까요?", r2.say)
+        val r2 = f.hear("응 참치김밥이랑 어묵국 하나")
+        assertEquals("참치김밥 하나, 어묵국 하나, 9,500원입니다. 주문할까요?", r2.say)
         val confirming = r2.stage as VoiceOrderFlow.Stage.Confirming
         assertEquals("길목김밥", confirming.store.name)
         assertEquals(9_500, confirming.cart.sumOf { it.totalPrice })
@@ -31,11 +31,17 @@ class VoiceOrderFlowTest {
     }
 
     @Test
-    fun `가게만 고르면 메뉴를 묻는다`() {
+    fun `가게만 좋다고 하면 메뉴를 묻는다`() {
         val f = flow()
         f.hear("김밥 시켜줘")
-        assertEquals("모퉁이김밥에서 무엇을 드릴까요?", f.hear("두 번째").say)
-        assertEquals("원조김밥 두 개, 8,000원이에요. 주문할까요?", f.hear("원조김밥 두 개").say)
+        assertEquals("길목김밥에서 무엇을 드릴까요?", f.hear("응 좋아").say)
+        assertEquals("원조김밥 두 개, 8,000원입니다. 주문할까요?", f.hear("원조김밥 두 개").say)
+    }
+
+    @Test
+    fun `지난번 가게가 경로 근처에 없으면 먼저 지나가는 가게를 제안한다`() {
+        val f = VoiceOrderFlow("없는가게") { stores }
+        assertEquals("가는 길에 배달받을 수 있는 길목김밥이 있습니다. 어떠세요?", f.onHeard(parser.parse("김밥 시켜줘")).say)
     }
 
     @Test
@@ -43,7 +49,7 @@ class VoiceOrderFlowTest {
         val f = flow()
         f.hear("김밥 시켜줘")
         assertEquals("다시 말씀해 주세요.", f.hear("음 글쎄").say)
-        assertTrue(f.stage is VoiceOrderFlow.Stage.ChoosingStore)
+        assertTrue(f.stage is VoiceOrderFlow.Stage.ChoosingMenu)
         f.hear("뭐였더라")
         assertTrue(f.stage is VoiceOrderFlow.Stage.Idle)
     }
@@ -51,14 +57,14 @@ class VoiceOrderFlowTest {
     @Test
     fun `확인 단계에서 아니라고 하면 취소`() {
         val f = flow()
-        f.hear("김밥 시켜줘"); f.hear("첫 번째 참치김밥 하나")
+        f.hear("김밥 시켜줘"); f.hear("참치김밥 하나")
         assertEquals("알겠어요, 주문을 취소할게요.", f.hear("아니 취소해").say)
         assertTrue(f.stage is VoiceOrderFlow.Stage.Idle)
     }
 
     @Test
     fun `가는 길에 가게가 없으면 그렇게 말한다`() {
-        val f = VoiceOrderFlow { emptyList() }
+        val f = VoiceOrderFlow { _ -> emptyList() }
         assertEquals("가는 길에는 받을 수 있는 가게가 없어요.", f.onHeard(parser.parse("김밥 시켜줘")).say)
     }
 
@@ -72,7 +78,7 @@ class VoiceOrderFlowTest {
     fun `Gleo가 메뉴를 넘기면 그 메뉴가 있는 첫 가게로 바로 확인을 묻는다`() {
         val f = flow()
         val r = f.startWithItems(parser.parse("참치 김밥 1개").items)
-        assertEquals("길목김밥에서 참치김밥 하나, 5,500원이에요. 주문할까요?", r.say)
+        assertEquals("길목김밥에서 참치김밥 하나, 5,500원입니다. 주문할까요?", r.say)
         assertTrue(r.stage is VoiceOrderFlow.Stage.Confirming)
         assertTrue(f.hear("응 주문해").stage is VoiceOrderFlow.Stage.Ordered)
     }

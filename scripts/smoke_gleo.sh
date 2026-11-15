@@ -14,7 +14,7 @@ demo_reset
 "$ADB" logcat -c; demo_route
 route_started || { echo "  FAIL 내비 안내 시작"; SMOKE_FAIL=1; }
 "$ADB" shell "am start -a ai.cardeli.starter.ORDER_FOOD -p ai.cardeli.starter --es ACTION_PARAM '{\"menu\":\"참치 김밥\",\"quantity\":1}'" >/dev/null
-step "Gleo 메뉴로 바로 주문 확인" '"status":"Confirming".*"totalPrice":5500.*"assistantText":"길목김밥에서 참치김밥 하나, 5,500원이에요. 주문할까요?"' 12
+step "Gleo 메뉴로 바로 주문 확인" '"status":"Confirming".*"totalPrice":5500.*"assistantText":"길목김밥에서 참치김밥 하나, 5,500원입니다. 주문할까요?"' 12
 demo_utter s1_3_yes
 step "주문 완료·수령 지점 안내" '"status":"Ordered".*"pickup":{"name":"길목사거리 정차구역"' 20
 demo_gear Park >/dev/null

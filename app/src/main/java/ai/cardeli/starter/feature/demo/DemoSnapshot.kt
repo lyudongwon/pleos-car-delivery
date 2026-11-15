@@ -11,6 +11,13 @@ object DemoSnapshot {
     fun toJson(s: OrderUiState): String = buildString {
         append('{')
         append("\"isDriving\":").append(s.isDriving).append(',')
+        append("\"isParked\":").append(s.isParked).append(',')
+        append("\"stores\":[").append(s.stores.joinToString(",") { "{\"id\":${str(it.id)},\"eta\":${it.etaMin},\"beforeCharge\":${it.beforeChargeEnds}}" }).append("],")
+        append("\"charging\":").append(s.charging?.let { "{\"soc\":${it.socPercent},\"remainMin\":${it.remainMin}}" } ?: "null").append(',')
+        append("\"options\":{\"method\":${str(s.options.method.name)},\"window\":${str(s.options.window.name)},\"locateBy\":${str(s.options.locateBy.name)},\"payment\":${str(s.options.payment.name)}},")
+        append("\"deliveryFee\":").append(s.deliveryFee).append(',')
+        append("\"payTotal\":").append(s.payTotal).append(',')
+        append("\"etaMin\":").append(s.etaMin?.toString() ?: "null").append(',')
         append("\"status\":").append(str(s.status.name)).append(',')
         append("\"store\":").append(str(s.menus.firstOrNull()?.storeName ?: "")).append(',')
         append("\"cart\":[")
@@ -28,7 +35,7 @@ object DemoSnapshot {
         append("\"touchCount\":").append(s.touchCount).append(',')
         append("\"atPickup\":").append(s.atPickup).append(',')
         append("\"delivery\":")
-        append(s.delivery?.let { "{\"place\":${str(it.placeLabel)},\"lat\":${it.latitude},\"lng\":${it.longitude},\"plate\":${str(it.plate)},\"color\":${str(it.color)},\"carModel\":${str(it.carModel)}}" } ?: "null")
+        append(s.delivery?.let { "{\"place\":${str(it.placeLabel)},\"lat\":${it.latitude},\"lng\":${it.longitude},\"plate\":${str(it.plate)},\"color\":${str(it.color)},\"carModel\":${str(it.carModel)},\"window\":${str(it.window.name)},\"locateBy\":${str(it.locateBy.name)},\"fixedByPark\":${it.fixedByPark}}" } ?: "null")
         append('}')
     }
 

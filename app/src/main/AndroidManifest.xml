@@ -6,7 +6,7 @@
     <!-- Pleos Vehicle SDK -->
     <uses-permission android:name="pleos.car.permission.CAR_DRIVE" />  <!-- Gear -->
     <uses-permission android:name="pleos.car.permission.CAR_INFO" />   <!-- CarInfo: 차량 등록번호·VIN -->
-    <uses-permission android:name="pleos.car.permission.CAR_WINDOWS" />  <!-- Window: 창문 위치 조회·리스너 (수령 감지) -->
+    <uses-permission android:name="pleos.car.permission.CAR_WINDOWS" />  <!-- Window: 창문 위치 (시험 화면) -->
     <!-- 시험용: 에뮬레이터에서 창문을 열고 닫아 리스너를 확인하려고 넣음. 실제 앱에는 넣지 않는다 -->
     <uses-permission android:name="pleos.car.permission.CONTROL_CAR_WINDOWS" />
 
@@ -30,6 +30,10 @@
     <uses-permission android:name="android.car.permission.CAR_SPEED" />
     <uses-permission android:name="android.car.permission.CAR_POWERTRAIN" />
     <uses-permission android:name="android.car.permission.CAR_INFO" />
+    <!-- 충전 중 주문 (F16): 배터리 잔량, 충전구 -->
+    <uses-permission android:name="pleos.car.permission.CAR_ENERGY" />
+    <uses-permission android:name="android.car.permission.CAR_ENERGY" />
+    <uses-permission android:name="android.car.permission.CAR_ENERGY_PORTS" />
 
     <application
         android:label="밥먹GO"

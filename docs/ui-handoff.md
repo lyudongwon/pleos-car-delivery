@@ -2,6 +2,26 @@
 
 contract(`contract/OrderContract.kt`)가 바뀔 때마다 여기에 적는다. 위에 있을수록 최신이다.
 
+## 2026-11-15 · 시연 영상 흐름에 맞춘 값 추가 (contract/OrderContract.kt)
+
+| 값 / 이벤트 | 내용 | 영상 화면 |
+|---|---|---|
+| `stores: List<StoreCard>` | 정차 중 가게 목록. 이름·카테고리·거리(m)·예상 시간(분)·배달비·`beforeChargeEnds` | 주문하기(가게 목록) |
+| `OrderEvent.SelectStore(id)` | 가게를 고르면 `menus`·`deliveryFee`가 그 가게로 바뀐다 | 가게 → 메뉴 |
+| `deliveryFee`, `payTotal` | 배달비, 결제 금액(메뉴 + 배달비) | 결제 금액 |
+| `options: OrderOptions` | 배달 방식·수령 창문·위치 알림·추가 전달 사항·가게 요청사항·결제 방식 | 주문서 |
+| `SelectMethod` · `SelectWindow` · `SelectLocateBy` · `SetRiderNote` · `SetStoreNote` · `SelectPayment` | 위 값을 바꾸는 이벤트. enum마다 화면 문구용 `label`이 있다 | 주문서 |
+| `OrderStatus.Cooking`, `Delivering` | 진행 단계 추가: 접수(Ordered) → 조리 중 → 배달 시작 → 곧 도착(RiderComing) → 도착(Arrived) → 완료(Received) | 주문 내역 진행 표시 |
+| `etaMin` | 배달 완료까지 남은 시간(분). 조리 + 기사 이동으로 계산 | "약 N분 후" |
+| `OrderEvent.NotReceived` | "음식을 수령하셨나요?"에서 "아니요, 못 받았어요" | 수령 확인 |
+| `isParked` | 기어 P. 이때 주문하면 차 위치를 받는 곳으로 확정(`delivery.fixedByPark`) | |
+| `charging: ChargingInfo?` | 충전 중이면 잔량(%)과 목표까지 남은 시간(분). 이때 `stores`는 충전 끝나기 전에 받을 수 있는 가게가 앞 | |
+| `delivery.window`, `locateBy`, `riderNote` | 기사에게 같이 가는 값 | 라이더 곧 도착 화면 |
+
+- `Arrived`가 되면 "음식을 수령하셨나요?"(네 = `ConfirmReceived`, 아니요 = `NotReceived`)를 띄우면 된다.
+- 위치 알림이 비상등이면, 기사가 200m 안에 들어올 때 앱이 "비상등을 켜 주세요"라고 말한다(차의 비상등을 앱이 켜지는 못한다).
+- `suggestions`는 이제 한 개(지난번 주문한 가게)만 온다.
+
 ## 2026-11-11 · 수령 지점 도착(atPickup) 추가
 
 `OrderUiState.atPickup: Boolean` — 차가 수령 지점 반경 100m 안에 들어오면 true. DrivingScreen에서 "도착" 표시에 쓴다. 이때 `assistantText`는 "○○에 도착했어요. 기사님이 오고 있어요."다.

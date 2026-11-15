@@ -20,7 +20,9 @@ source scripts/demo.sh
 | `demo_pickup_log` | F7 수령 지점 계산 로그(JSON)를 출력한다 |
 | `demo_reset` | 주문 상태를 처음으로 되돌린다 (주행 여부는 차량 상태를 따름) |
 | `demo_state` | 현재 state를 JSON으로 저장하고 출력한다 |
-| `demo_event <이름> [메뉴 id]` | 화면 대신 이벤트를 보낸다: `AddMenu`·`RemoveMenu`(id 필요), `ReviewOrder`, `BackToMenu`, `PlaceOrder`, `ConfirmReceived` |
+| `demo_event <이름> [값]` | 화면 대신 이벤트를 보낸다: `SelectStore <가게 id>`, `AddMenu`·`RemoveMenu <메뉴 id>`, `ReviewOrder`, `BackToMenu`, `SelectWindow Driver·Passenger·RearLeft·RearRight`, `SelectLocateBy Hazard·CarInfo`, `SelectMethod ToCar·PickupPoint`, `SelectPayment Card·KakaoPay·HyundaiPay·Other`, `SetRiderNote <글>`, `PlaceOrder`, `ConfirmReceived`, `NotReceived` |
+| `demo_progress Cooking` | 주문 진행을 조리 중으로 넘긴다 (배달 시작·곧 도착·도착은 기사 좌표로 정해진다) |
+| `demo_charge_port true\|false`, `demo_soc <%>` | Virtual Console로 충전구·배터리 잔량을 바꾼다. 충전구가 열린 채 잔량이 오르면 앱이 충전 중으로 본다 |
 | `demo_rider <위도> <경도>` | 배달기사 위치를 보낸다 (F11) |
 | `demo_utter <이름>` | 녹음 대사 `assets/voice/<이름>.pcm`을 음성 인식에 넣는다. S1 대사: `s1_1_order`, `s1_2_pick`, `s1_3_yes` |
 | `demo_say "<문장>"` | 앱이 문장을 음성으로 읽는다 |

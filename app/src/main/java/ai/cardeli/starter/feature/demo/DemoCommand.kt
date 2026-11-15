@@ -35,6 +35,12 @@ sealed interface DemoCommand {
     /** 배달기사 위치 (F11) */
     data class Rider(val location: LatLng) : DemoCommand
 
+    /** 주문 진행 단계를 넘긴다 (예: Cooking). 기사 단계(Delivering·RiderComing·Arrived)는 기사 좌표로 정해진다 */
+    data class Progress(val status: String) : DemoCommand
+
+    /** 충전구·배터리 잔량을 직접 넣는다. Virtual Console로 못 바꿀 때 쓴다 (F16) */
+    data class Charge(val portOpen: Boolean, val soc: Int?) : DemoCommand
+
     /** 화면 대신 OrderEvent를 보낸다. name: AddMenu·RemoveMenu(id 필요), ReviewOrder, BackToMenu, PlaceOrder, ConfirmReceived */
     data class Event(val name: String, val id: String?) : DemoCommand
 
@@ -54,6 +60,8 @@ sealed interface DemoCommand {
                 if (lat != null && lng != null) Rider(LatLng(lat, lng)) else null
             }
             "event" -> extra("name")?.let { Event(it, extra("id")) }
+            "progress" -> extra("status")?.let { Progress(it) }
+            "charge" -> Charge(extra("open") != "false", extra("soc")?.toIntOrNull())
             else -> null
         }
     }

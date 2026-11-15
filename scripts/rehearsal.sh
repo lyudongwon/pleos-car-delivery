@@ -87,13 +87,11 @@ shot s1_0_driving
 driver s1_1_order;    shot s1_1_suggest
 driver s1_2_pick;     shot s1_2_confirm
 driver s1_3_yes 40;   shot s1_3_ordered
-wait_phrase "경로에 넣었어요" 30; shot s1_4_waypoint_navi
+wait_phrase "경로에 추가했습니다" 30; shot s1_4_waypoint_navi
 "$ADB" shell sleep 5   # 수령 지점까지 가는 구간(영상에서는 편집으로 줄임)
 n=$(say_count); demo_geo 37.295221 127.106226   # 수령 지점 80m 앞
 wait_reply "$n" 20;   shot s1_5_arrived
 "$ADB" shell sleep 2
-n=$(say_count); demo_window 100; "$ADB" shell sleep 3; demo_window 0   # 창문 열고 받고 닫음
-wait_reply "$n" 15;   shot s1_6_ask_received
 driver s1_4_received 30; shot s1_7_received
 "$ADB" shell sleep 3; shot s1_8_route_back
 rec_stop s1
