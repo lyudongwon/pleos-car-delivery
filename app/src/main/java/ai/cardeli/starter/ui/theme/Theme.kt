@@ -1,10 +1,13 @@
 package ai.cardeli.starter.ui.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 
-// TODO(UI): 밝은 테마가 필요하면 lightColorScheme을 추가한다. 차량 화면 기준으로 일단 어두운 테마 하나만 둔다.
+// 차량 화면 기준 어두운 테마 하나
 private val AppColorScheme = darkColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
@@ -12,6 +15,16 @@ private val AppColorScheme = darkColorScheme(
     onBackground = OnBackground,
     surface = Surface,
     onSurface = OnSurface,
+    surfaceVariant = SurfaceHigh,
+    onSurfaceVariant = TextSub,
+    outline = Outline,
+)
+
+// 피그마 모서리: 작은 이미지 10, 카드 20, 버튼·칩은 완전히 둥글게
+private val AppShapes = Shapes(
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(20.dp),
+    large = RoundedCornerShape(20.dp),
 )
 
 @Composable
@@ -19,7 +32,7 @@ fun CardeliTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = AppColorScheme,
         typography = AppTypography,
-        // TODO(UI): shapes = AppShapes (모서리 둥글기 규격이 정해지면)
+        shapes = AppShapes,
         content = content,
     )
 }
