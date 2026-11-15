@@ -49,8 +49,8 @@ class DemoDataTest {
     }
 
     @Test
-    fun `참치김밥과 어묵국은 9500원이다`() {
-        for (s in DemoData.s1Stores + DemoData.s2Store) {
+    fun `S1 가게는 참치김밥과 어묵국이 9500원이다`() {
+        for (s in DemoData.s1Stores) {
             val total = s.menus.filter { it.name == "참치김밥" || it.name == "어묵국" }.sumOf { it.price }
             assertEquals(s.name, 9_500, total)
         }

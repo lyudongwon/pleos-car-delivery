@@ -11,7 +11,6 @@ import ai.cardeli.starter.feature.demo.DemoCommand
 import ai.cardeli.starter.feature.demo.DemoSnapshot
 import ai.cardeli.starter.feature.geo.Geo
 import ai.cardeli.starter.feature.mock.DemoData
-import ai.cardeli.starter.feature.mock.MockData
 import ai.cardeli.starter.feature.sdk.DrivingStateSource
 import ai.cardeli.starter.feature.sdk.Listener
 import ai.cardeli.starter.feature.sdk.LocationSource
@@ -29,6 +28,11 @@ import ai.cardeli.starter.contract.DeliveryMethod
 import ai.cardeli.starter.contract.LocateBy
 import ai.cardeli.starter.contract.PaymentMethod
 import ai.cardeli.starter.contract.ReceiveWindow
+import ai.cardeli.starter.contract.OrderReceipt
+import ai.cardeli.starter.contract.PastOrder
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import ai.cardeli.starter.feature.sdk.GleoBridge
 import ai.cardeli.starter.feature.mock.DemoStore
 import ai.cardeli.starter.feature.mock.PickupMeasure
@@ -54,7 +58,11 @@ import kotlin.math.roundToInt
 
 class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
 
-    private val initialState = OrderUiState(menus = MockData.menus, deliveryFee = DemoData.s2Store.deliveryFee)
+    private val initialState = OrderUiState(
+        placeLabel = DemoData.S2_PLACE_LABEL,
+        pastOrders = DemoData.pastOrders.map { PastOrder(it.id, it.storeName, it.summary, it.dateLabel, "수령 완료") },
+    )
+    private var orderSeq = 13
     private val _state = MutableStateFlow(initialState)
     val state: StateFlow<OrderUiState> = _state.asStateFlow()
 
@@ -86,6 +94,7 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
     fun onEvent(event: OrderEvent) {
         when (event) {
             is OrderEvent.SelectStore -> selectStore(event.storeId)
+            OrderEvent.BackToStores -> _state.update { it.copy(selectedStoreId = null) }
             is OrderEvent.AddMenu -> _state.update { it.copy(cart = it.cart.add(event.menu)) }
             is OrderEvent.RemoveMenu -> _state.update { it.copy(cart = it.cart.remove(event.menu)) }
             OrderEvent.ReviewOrder -> _state.update {
@@ -117,13 +126,15 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         val store = DemoData.s2Stores.firstOrNull { it.id == id } ?: return
         if (store.id != selectedStore.id) _state.update { it.copy(cart = emptyList()) }
         selectedStore = store
-        _state.update { it.copy(menus = store.menus, deliveryFee = store.deliveryFee) }
+        _state.update { it.copy(selectedStoreId = store.id, menus = store.menus, deliveryFee = store.deliveryFee) }
     }
 
     /** 지금 차 위치와 충전 상태로 정차 중 가게 목록을 다시 만든다 (F9·F16) */
     private fun refreshStores() {
         val here = locationSource.location.value ?: return
-        _state.update { it.copy(stores = storeLister.cards(DemoData.s2Stores, here, it.charging)) }
+        _state.update {
+            it.copy(stores = storeLister.cards(DemoData.s2Stores, here, it.charging), carLatitude = here.lat, carLongitude = here.lng)
+        }
     }
 
     /** 충전구 열림·배터리 잔량이 바뀌었다 (F16). 충전 중이면 충전 끝나기 전에 받을 수 있는 가게를 앞에 둔다 */
@@ -393,6 +404,7 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
             "SelectPayment" -> c.id?.let { id -> PaymentMethod.entries.firstOrNull { it.name == id } }?.let { OrderEvent.SelectPayment(it) }
             "SetRiderNote" -> OrderEvent.SetRiderNote(c.id ?: "")
             "NotReceived" -> OrderEvent.NotReceived
+            "BackToStores" -> OrderEvent.BackToStores
             "AddMenu" -> menu?.let { OrderEvent.AddMenu(it) }
             "RemoveMenu" -> menu?.let { OrderEvent.RemoveMenu(it) }
             "ReviewOrder" -> OrderEvent.ReviewOrder
@@ -447,11 +459,15 @@ class OrderViewModel(private val app: Application) : AndroidViewModel(app) {
         val parked = _state.value.isParked
         if (here == null) Log.w(TAG, "차 위치를 아직 못 받아 배달 정보 없이 주문")
         if (!parked) Log.w(TAG, "기어가 P가 아닌 상태에서 정차 주문: 위치를 확정하지 않고 보낸다")
+        val receipt = OrderReceipt(
+            number = "H4ANDAE%04d".format(Locale.ROOT, orderSeq++),
+            orderedAt = SimpleDateFormat("yyyy.MM.dd(E) HH:mm", Locale.KOREA).format(Date()),
+        )
         val delivery = here?.let { deliveryInfo("지금 차 위치", it, fixedByPark = parked) }
         val eta = here?.let { storeLister.etaMin(selectedStore, it) }
         Log.i(TAG, "배달 정보 $delivery, 예상 ${eta}분, 결제 ${_state.value.options.payment.label} ${_state.value.payTotal}원")
         riderTracker.reset()
-        _state.update { it.copy(status = OrderStatus.Ordered, delivery = delivery, etaMin = eta) }
+        _state.update { it.copy(status = OrderStatus.Ordered, delivery = delivery, etaMin = eta, receipt = receipt) }
     }
 
     /** 주문 진행 단계를 넘긴다 (데모 명령: 주문 접수 → 조리 중 등). 기사 단계는 기사 좌표로 정해진다 */

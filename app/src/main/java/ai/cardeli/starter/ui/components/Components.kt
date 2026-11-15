@@ -78,15 +78,19 @@ fun meters(m: Int): String =
 
 enum class NavTab(val label: String) { Home("홈"), Orders("주문내역"), Favorites("즐겨찾기"), My("마이페이지") }
 
+/** 상단 탭을 눌렀을 때 화면 전환 (MainActivity가 제공). 미리보기에서는 아무것도 안 한다 */
+val LocalTabNavigator = androidx.compose.runtime.staticCompositionLocalOf<(NavTab) -> Unit> { {} }
+
 /** 모든 정차 화면의 바깥 틀: 배경, 상단바, 여백 */
 @Composable
 fun AppScaffold(
     active: NavTab?,
+    location: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(Modifier.fillMaxSize(), color = Background, contentColor = OnBackground) {
         Column(Modifier.fillMaxSize().padding(horizontal = 44.dp, vertical = 30.dp)) {
-            AppTopBar(active)
+            AppTopBar(active, location)
             Spacer(Modifier.height(24.dp))
             content()
         }
@@ -107,24 +111,30 @@ fun Logo(size: Int = 32) {
 
 /** 로고 + 오른쪽 메뉴 알약. 지금 화면에 해당하는 칸만 노랗게 칠한다 */
 @Composable
-fun AppTopBar(active: NavTab?) {
+fun AppTopBar(active: NavTab?, location: String? = null) {
+    val navigate = LocalTabNavigator.current
     Row(Modifier.fillMaxWidth().height(72.dp), verticalAlignment = Alignment.CenterVertically) {
         Logo()
+        if (!location.isNullOrEmpty()) {
+            Spacer(Modifier.width(24.dp))
+            Text("● $location", style = MaterialTheme.typography.bodyLarge, color = TextSub)
+        }
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(22.dp)) {
-            NavTab.values().forEach { NavPill(it.label, it == active) }
+            NavTab.values().forEach { tab -> NavPill(tab.label, tab == active) { navigate(tab) } }
         }
     }
 }
 
 @Composable
-private fun NavPill(label: String, selected: Boolean) {
+private fun NavPill(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         Modifier
             .height(44.dp)
             .widthIn(min = 132.dp)
             .clip(RoundedCornerShape(32.dp))
             .background(if (selected) Primary else Color.Transparent)
+            .clickable(onClick = onClick)
             .padding(horizontal = 24.dp),
         contentAlignment = Alignment.Center,
     ) {

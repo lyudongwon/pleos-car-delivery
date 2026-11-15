@@ -13,17 +13,24 @@ class StoreListerTest {
     private val here = DemoData.s2Parking
 
     @Test
-    fun `충전 중이 아니면 가까운 순이고 모두 받을 수 있다`() {
+    fun `충전 중이 아니면 데이터 순서 그대로이고 모두 받을 수 있다`() {
         val cards = lister.cards(DemoData.s2Stores, here, null)
-        assertEquals(DemoData.s2Stores.size, cards.size)
+        assertEquals(DemoData.s2Stores.map { it.id }, cards.map { it.id })
         assertTrue(cards.all { it.beforeChargeEnds })
-        assertEquals(cards.sortedBy { it.distanceM }, cards)
+    }
+
+    @Test
+    fun `차 위치에서 가게까지 거리는 화면 디자인 숫자와 같다`() {
+        val d = lister.cards(DemoData.s2Stores, here, null).associate { it.name to it.distanceM }
+        assertEquals(1_300.0, d.getValue("BHC치킨 우면점").toDouble(), 10.0)
+        assertEquals(1_500.0, d.getValue("대한감자탕뼈해장국").toDouble(), 10.0)
+        assertEquals(1_600.0, d.getValue("다옴 양재온누리점").toDouble(), 10.0)
     }
 
     @Test
     fun `예상 시간은 조리 시간과 기사 이동(분당 250m)`() {
-        val s = DemoData.s2Store   // 서현김밥, 조리 10분, 차에서 약 200m
-        assertEquals(11, lister.etaMin(s, here))
+        val s = DemoData.s2Store   // 다옴 양재온누리점, 조리 13분, 차에서 약 1.6km(기사 6.4분 → 7분)
+        assertEquals(20, lister.etaMin(s, here))
     }
 
     @Test

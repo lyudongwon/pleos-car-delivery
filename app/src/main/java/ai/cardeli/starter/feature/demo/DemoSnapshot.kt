@@ -18,6 +18,7 @@ object DemoSnapshot {
         append("\"deliveryFee\":").append(s.deliveryFee).append(',')
         append("\"payTotal\":").append(s.payTotal).append(',')
         append("\"etaMin\":").append(s.etaMin?.toString() ?: "null").append(',')
+        append("\"selectedStoreId\":").append(s.selectedStoreId?.let { str(it) } ?: "null").append(',')
         append("\"status\":").append(str(s.status.name)).append(',')
         append("\"store\":").append(str(s.menus.firstOrNull()?.storeName ?: "")).append(',')
         append("\"cart\":[")

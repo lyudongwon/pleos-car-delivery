@@ -11,7 +11,7 @@ import kotlin.math.roundToInt
 /**
  * 정차 중 가게 목록 (F9·F16).
  * 예상 시간 = 조리 시간 + 기사 이동(가게 → 차, 분당 [riderMPerMin]m 가정). 수령 지점 계산(PickupSelector)과 같은 가정이다.
- * 충전 중이면 충전이 끝나기 전에 받을 수 있는 가게를 앞에 두고, 나머지는 가까운 순.
+ * 충전 중이면 충전이 끝나기 전에 받을 수 있는 가게를 앞에 둔다. 그 밖에는 데이터 순서(화면 디자인 순서) 그대로.
  */
 class StoreLister(private val riderMPerMin: Double = 250.0) {
 
@@ -29,9 +29,15 @@ class StoreLister(private val riderMPerMin: Double = 250.0) {
                 distanceM = Geo.distanceM(s.location, here).roundToInt(),
                 etaMin = eta,
                 deliveryFee = s.deliveryFee,
+                minOrder = s.minOrder,
+                rating = s.rating,
+                reviewCount = s.reviewCount,
+                latitude = s.location.lat,
+                longitude = s.location.lng,
+                lastOrder = s.lastOrder,
                 beforeChargeEnds = remain == null || eta <= remain,
             )
-        }.sortedWith(compareByDescending<StoreCard> { it.beforeChargeEnds }.thenBy { it.distanceM })
+        }.sortedByDescending { it.beforeChargeEnds }   // 충전 중이 아니면 데이터 순서 그대로 (안정 정렬)
     }
 }
 

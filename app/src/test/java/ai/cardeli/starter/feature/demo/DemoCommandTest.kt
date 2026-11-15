@@ -61,6 +61,7 @@ class DemoCommandTest {
         assertEquals(
             "{\"isDriving\":false,\"isParked\":false,\"stores\":[],\"charging\":null," +
                 "\"options\":{\"method\":\"ToCar\",\"window\":\"Driver\",\"locateBy\":\"CarInfo\",\"payment\":\"Card\"},\"deliveryFee\":0,\"payTotal\":11000,\"etaMin\":null," +
+                "\"selectedStoreId\":null," +
                 "\"status\":\"RiderComing\",\"store\":\"서현김밥\",\"cart\":[{\"id\":\"s2-2\",\"name\":\"참치김밥\",\"qty\":2}],\"totalPrice\":11000,\"riderDistanceM\":200," +
                 "\"voiceState\":\"Idle\",\"transcript\":\"\",\"assistantText\":\"\",\"suggestions\":[],\"pickup\":null,\"touchCount\":0,\"atPickup\":false,\"delivery\":null}",
             json,

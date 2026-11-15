@@ -12,6 +12,8 @@ data class Menu(
     val storeName: String,
     val name: String,
     val price: Int,          // 원
+    val description: String = "",
+    val reviewCount: Int = 0,
 )
 
 data class CartItem(
@@ -73,13 +75,19 @@ data class OrderOptions(
 data class OrderUiState(
     val isDriving: Boolean = false,          // true면 DrivingScreen만 보인다
     val isParked: Boolean = false,           // 기어 P. 이때 주문하면 지금 차 위치를 받는 곳으로 확정한다
+    val placeLabel: String = "",             // 지금 차가 있는 곳 (예: 서울 서초구 헌릉로)
+    val carLatitude: Double? = null,         // 지금 차 위치 (지도에 표시)
+    val carLongitude: Double? = null,
     val stores: List<StoreCard> = emptyList(),   // 정차 중 가게 목록 (충전 중이면 충전 끝나기 전에 받을 수 있는 가게가 앞에 온다)
+    val selectedStoreId: String? = null,     // 고른 가게. null이면 가게 목록을 보여 준다
     val menus: List<Menu> = emptyList(),     // 고른 가게의 메뉴
     val cart: List<CartItem> = emptyList(),
     val deliveryFee: Int = 0,                // 고른 가게의 배달비(원)
     val options: OrderOptions = OrderOptions(),
     val status: OrderStatus = OrderStatus.Browsing,
     val etaMin: Int? = null,                 // 배달 완료까지 남은 시간(분). 주문 전에는 null
+    val receipt: OrderReceipt? = null,       // 주문번호·주문 시각. 주문 뒤 채워진다
+    val pastOrders: List<PastOrder> = emptyList(),   // 주문내역의 지난 주문 (시연 데이터)
     val riderDistanceM: Int? = null,         // 배달기사와 받는 곳 사이 거리(m). 배달 전에는 null
     val charging: ChargingInfo? = null,      // 충전 중이면 채워진다
 
@@ -115,11 +123,29 @@ data class StoreSuggestion(
 data class StoreCard(
     val id: String,
     val name: String,
-    val category: String,      // 김밥, 치킨, 카페, 한식 …
+    val category: String,      // 카페·디저트, 한식, 중식, 일식, 패스트푸드
     val distanceM: Int,        // 차에서 가게까지 직선 거리(m)
     val etaMin: Int,           // 조리 + 기사 이동 예상(분)
     val deliveryFee: Int,
+    val minOrder: Int,         // 최소 주문 금액(원)
+    val rating: Double,
+    val reviewCount: Int,
+    val latitude: Double,
+    val longitude: Double,
+    val lastOrder: String,     // 예: 22:20
     val beforeChargeEnds: Boolean,   // 충전이 끝나기 전에 받을 수 있는지. 충전 중이 아니면 true
+)
+
+/** 주문번호와 주문 시각 */
+data class OrderReceipt(val number: String, val orderedAt: String)
+
+/** 주문내역 목록의 지난 주문 */
+data class PastOrder(
+    val id: String,
+    val storeName: String,
+    val summary: String,       // 예: 생망고 케이크 외 2개
+    val dateLabel: String,     // 예: 어제 12:45
+    val statusLabel: String,   // 예: 수령 완료
 )
 
 /** 충전 상태 (Vehicle SDK EvBattery) */
@@ -151,6 +177,7 @@ data class PickupPoint(
 
 sealed interface OrderEvent {
     data class SelectStore(val storeId: String) : OrderEvent   // 가게 목록 → 메뉴
+    data object BackToStores : OrderEvent     // 메뉴 → 가게 목록
     data class AddMenu(val menu: Menu) : OrderEvent
     data class RemoveMenu(val menu: Menu) : OrderEvent
     data object ReviewOrder : OrderEvent      // Browsing → Confirming (장바구니가 비어 있으면 무시)

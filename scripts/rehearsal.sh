@@ -100,20 +100,21 @@ dump_log s1 "S1 주행 중 음성 주문"
 demo_geo 37.4127212 127.094681; demo_gear Park >/dev/null
 
 echo "== S2 정차 중 주문"
-demo_geo 37.3838 127.1240
+demo_geo 37.4630 127.0390
 demo_start >/dev/null; "$ADB" shell sleep 2
 demo_reset
 "$ADB" logcat -c
 rec_start s2
 shot s2_0_menu
-"$ADB" shell sleep 2; demo_event AddMenu s2-2
-"$ADB" shell sleep 2; demo_event AddMenu s2-4
+"$ADB" shell sleep 2; demo_event SelectStore s2-a
+"$ADB" shell sleep 2; demo_event AddMenu s2-3
+"$ADB" shell sleep 2; demo_event AddMenu s2-1
 "$ADB" shell sleep 2; shot s2_1_cart
 demo_event ReviewOrder; "$ADB" shell sleep 3; shot s2_2_confirm
 demo_event PlaceOrder;  "$ADB" shell sleep 3; shot s2_3_delivery
-demo_rider 37.3900 127.1300; "$ADB" shell sleep 4; shot s2_4_rider_far
-n=$(say_count); demo_rider 37.3850 127.1255; wait_reply "$n" 15; shot s2_5_rider_near
-n=$(say_count); demo_rider 37.3840 127.1242; wait_reply "$n" 15; shot s2_6_rider_arrived
+demo_rider 37.4690 127.0450; "$ADB" shell sleep 4; shot s2_4_rider_far
+n=$(say_count); demo_rider 37.4642 127.0405; wait_reply "$n" 15; shot s2_5_rider_near
+n=$(say_count); demo_rider 37.4632 127.0392; wait_reply "$n" 15; shot s2_6_rider_arrived
 "$ADB" shell sleep 2; demo_event ConfirmReceived; "$ADB" shell sleep 3; shot s2_7_received
 rec_stop s2
 s2_state="$(demo_state)"
