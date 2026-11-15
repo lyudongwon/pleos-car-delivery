@@ -253,7 +253,7 @@ private class HomeCategory(
 private val homeCategories = listOf(
     HomeCategory("카페&디저트", R.drawable.home_cat_coffee, 119.5.dp, badge = "위치 근처", badgeTop = 109.4.dp),
     HomeCategory("패스트푸드", R.drawable.home_cat_burger, 128.dp),
-    HomeCategory("치킨", R.drawable.home_cat_chicken, 133.7.dp, badge = "바로 픽업 가능", badgeTop = 105.4.dp),
+    HomeCategory("치킨", R.drawable.home_cat_chicken, 133.7.dp),   // 피그마의 "바로 픽업 가능" 배지는 픽업을 범위에서 빼서 넣지 않음
     HomeCategory("피자", R.drawable.home_cat_pizza, 109.5.dp, iconX = 3.dp, iconTop = 7.3.dp),
     HomeCategory("일식", R.drawable.home_cat_sushi, 133.7.dp, iconX = (-4).dp),
     HomeCategory("한식", R.drawable.home_cat_korean, 127.9.dp, iconTop = 1.6.dp),
