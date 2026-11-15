@@ -59,8 +59,6 @@ dependencies {
     implementation("ai.pleos.playground:SpeechToText:3.3.1")
     implementation("ai.pleos.playground:TextToSpeech:3.3.1")
     implementation("ai.pleos.playground:FusedLocation:1.1.3")
-    // 시험용: 에뮬레이터 v2.1.0 릴리즈 노트상 "LLM SDK 제공 종료"지만 저장소와 서비스가 남아 있어 동작 여부만 확인
-    implementation("ai.pleos.playground:LLM:2.1.3.2")
 
     // UI: Jetpack Compose
     implementation("androidx.activity:activity-compose:1.13.0")

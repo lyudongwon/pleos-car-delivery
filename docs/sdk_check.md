@@ -137,7 +137,7 @@
 | ON_DEVICE 모드 | 서비스 로그 "on-device LLM is disabled". 응답·오류 콜백 둘 다 없음 |
 | SERVER 모드 | 요청은 만들지만 인증 토큰이 없어(expired, uaToken 비어 있음) 서버로 안 보냄. 오류 콜백도 없음. registerApp(Client ID, Client Secret) 필요 |
 
-시험 코드: `LlmCheckActivity` (`adb shell am start -n ai.cardeli.starter/.check.LlmCheckActivity [--es mode SERVER]`, 로그 `adb logcat -s LlmCheck`)
+시험 코드: `LlmCheckActivity` (공모전 공지에 따라 LLM SDK를 쓰지 않기로 하고 11/15 앱에서 삭제)
 
 ## 추가 확인 (2026-11-11 밤): Virtual Console HTTP API, 앱 화면 전환
 

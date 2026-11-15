@@ -10,7 +10,7 @@
 
 | 제출물 | 위치 |
 |---|---|
-| APK (release) | `apk/밥먹GO_release.apk` |
+| APK (release) | `apk/밥먹GO_밥먹GO_release.apk` |
 | 시연 영상 | [YouTube](https://www.youtube.com/watch?v=J4WBkGJTmXk) |
 | PoC 근거표 | [docs/poc](docs/poc/README.md) |
 
@@ -78,7 +78,7 @@
 release APK 설치:
 
 ```bash
-adb install -r -g apk/밥먹GO_release.apk
+adb install -r -g apk/밥먹GO_밥먹GO_release.apk
 ```
 
 시연 순서와 조작 명령은 [docs/demo.md](docs/demo.md)에 있습니다.
