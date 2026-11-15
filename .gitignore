@@ -20,3 +20,7 @@ Thumbs.db
 
 # 리허설 녹화·캡처 (크기가 커서 로컬에만. 타임라인은 docs/poc/rehearsal_*.md)
 docs/poc/rehearsal/
+
+# release 서명 키 (로컬 전용)
+keystore/
+keystore.properties
