@@ -8,8 +8,6 @@
 ![주문 화면](./readme-preview/purchase_select_window.png)
 ![라이더 곧 도착](./readme-preview/rider_arriving.png)
 
-<sub>화면 디자인 시안. 제출한 APK는 아래 기능이 Pleos SDK와 실제로 연동되는지 확인하는 빌드이며, 화면은 이 디자인으로 바꿔 갑니다.</sub>
-
 | 제출물 | 위치 |
 |---|---|
 | APK (release) | `apk/밥먹GO_release.apk` |
