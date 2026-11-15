@@ -11,7 +11,7 @@
 | 제출물 | 위치 |
 |---|---|
 | APK (release) | `apk/밥먹GO_release.apk` |
-| 시연 영상 | [영상 링크] |
+| 시연 영상 | [YouTube](https://www.youtube.com/watch?v=J4WBkGJTmXk) |
 | PoC 근거표 | [docs/poc](docs/poc/README.md) |
 
 ## 주요 기능
